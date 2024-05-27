@@ -155,7 +155,7 @@ async fn test_scan() {
     );
 
     // Block hash is non-deterministic due to timestamp
-    //let df = df.with_column("block_hash", lit("-")).unwrap();
+    let df = df.with_column("block_hash", lit("-")).unwrap();
     super::utils::assert_data_eq(
         df,
         indoc!(

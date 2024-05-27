@@ -316,16 +316,14 @@ impl<P: JsonRpcClient + 'static> EthGetLogs<P> {
                 returned += 1;
             }
 
-            if !logs.is_empty() {
-                let batch = crate::sql_server::logs_to_record_batch(logs);
+            let batch = crate::sql_server::logs_to_record_batch(logs);
 
-                let batch = if let Some(projection) = projection {
-                    batch.project(&projection)?
-                } else {
-                    batch
-                };
-                yield batch;
-            }
+            let batch = if let Some(projection) = projection {
+                batch.project(&projection)?
+            } else {
+                batch
+            };
+            yield batch;
         }
     }
 }
