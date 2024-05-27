@@ -1,4 +1,4 @@
-# Ethereum RPC Bridge For Apache Datafusion
+# Ethereum RPC Bridge for Apache Datafusion
 
 ## About
 This adapter allows querying data from Ethereum-compatible blockchain nodes using SQL.
