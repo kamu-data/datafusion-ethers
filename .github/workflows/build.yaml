@@ -17,6 +17,9 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           components: rustfmt, clippy
+      - uses: swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
       - name: cargo fmt --check
         uses: actions-rs/cargo@v1
         with:
