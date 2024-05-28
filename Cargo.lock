@@ -1381,7 +1381,7 @@ dependencies = [
 
 [[package]]
 name = "datafusion-ethers"
-version = "0.1.0"
+version = "38.0.0"
 dependencies = [
  "alloy-core",
  "async-stream",
