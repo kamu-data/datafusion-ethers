@@ -13,7 +13,6 @@ alloy-core = { version = "0.7", features = [
     "sol-types",
 ] }
 datafusion = "38.0.0"
-datafusion-functions-json = { version = "0.1" }
 ethers = { version = "2", default-features = false, features = [
     "ws",
     "rustls",
@@ -25,6 +24,7 @@ tracing = "0.1.40"
 tracing-subscriber = "0.3.18"
 
 [dev-dependencies]
+datafusion-functions-json = { version = "0.1" }
 indoc = { version = "2" }
 pretty_assertions = { version = "1" }
 test-log = { version = "0.2", features = ["trace"] }
