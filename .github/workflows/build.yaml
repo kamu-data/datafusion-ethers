@@ -57,13 +57,13 @@ jobs:
       #     cargo binstall cargo-nextest -y --force
       - name: Install foundry
         uses: foundry-rs/foundry-toolchain@v1
-      - name: Build node
-        run: cargo test ${{ env.CARGO_FLAGS }} --no-run
       - name: Build contracts
-        working-directory: kamu-contracts
+        working-directory: tests/contracts
         run: |
           npm ci
           forge build
+      - name: Build node
+        run: cargo test ${{ env.CARGO_FLAGS }} --no-run
       - name: Run tests
         run: cargo test ${{ env.CARGO_FLAGS }} -- --test-threads=1
       - name: Check git diff
