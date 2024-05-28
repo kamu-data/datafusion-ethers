@@ -28,3 +28,6 @@ tracing-subscriber = "0.3.18"
 indoc = { version = "2" }
 pretty_assertions = { version = "1" }
 test-log = { version = "0.2", features = ["trace"] }
+
+[patch.crates-io]
+datafusion-functions-json = { git = 'https://github.com/kamu-data/datafusion-functions-json.git', branch = "pin-jiter" }
