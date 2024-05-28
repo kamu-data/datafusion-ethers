@@ -51,7 +51,7 @@ fn get_sample_log() -> Log {
 
 #[test_log::test(tokio::test)]
 async fn test_logs_to_record_batch() {
-    let batch = datafusion_ethers::sql_server::logs_to_record_batch(vec![get_sample_log()]);
+    let batch = datafusion_ethers::convert::logs_to_record_batch(vec![get_sample_log()]);
 
     let ctx = SessionContext::new();
     let df = ctx.read_batch(batch).unwrap();
@@ -102,7 +102,7 @@ async fn test_udf_eth_decode_event() {
 
     ctx.register_batch(
         "logs",
-        datafusion_ethers::sql_server::logs_to_record_batch(vec![get_sample_log()]),
+        datafusion_ethers::convert::logs_to_record_batch(vec![get_sample_log()]),
     )
     .unwrap();
 

@@ -1,5 +1,14 @@
 # Ethereum RPC Bridge for Apache Datafusion
 
+<div align="center">
+
+[![Release](https://img.shields.io/github/v/release/kamu-data/datafusion-ethers?include_prereleases&logo=rust&logoColor=orange&style=for-the-badge)](https://github.com/kamu-data/datafusion-ethers/releases/latest)
+[![CI](https://img.shields.io/github/actions/workflow/status/kamu-data/datafusion-ethers/build.yaml?logo=githubactions&label=CI&logoColor=white&style=for-the-badge&branch=master)](https://github.com/kamu-data/datafusion-ethers/actions)
+[![Dependencies](https://deps.rs/repo/github/kamu-data/datafusion-ethers/status.svg?&style=for-the-badge)](https://deps.rs/repo/github/kamu-data/datafusion-ethers)
+[![Chat](https://shields.io/discord/898726370199359498?style=for-the-badge&logo=discord&label=Discord)](https://discord.gg/nU6TXRQNXC)
+
+</div>
+
 ## About
 This adapter allows querying data from Ethereum-compatible blockchain nodes using SQL.
 

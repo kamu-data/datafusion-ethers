@@ -84,10 +84,7 @@ impl<P: JsonRpcClient + 'static> SchemaProvider for EthSchema<P> {
     }
 
     fn table_exist(&self, name: &str) -> bool {
-        match name {
-            "logs" => true,
-            _ => false,
-        }
+        name == "logs"
     }
 }
 
@@ -235,7 +232,7 @@ impl<P: JsonRpcClient + 'static> TableProvider for EthLogsTable<P> {
         );
 
         let schema = if let Some(projection) = projection {
-            Arc::new(self.schema.project(&projection)?)
+            Arc::new(self.schema.project(projection)?)
         } else {
             self.schema.clone()
         };
@@ -316,7 +313,7 @@ impl<P: JsonRpcClient + 'static> EthGetLogs<P> {
                 returned += 1;
             }
 
-            let batch = crate::sql_server::logs_to_record_batch(logs);
+            let batch = crate::convert::logs_to_record_batch(logs);
 
             let batch = if let Some(projection) = projection {
                 batch.project(&projection)?
