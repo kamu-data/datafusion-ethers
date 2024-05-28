@@ -135,3 +135,6 @@ from (
 - UDF: `eth_decode_event(<solidity log signature>), topic0, topic1, topic2, topic3, data): json string`
   - Decodes raw event data into JSON string
   - JSON can then be further processed using [`datafusion-functions-json`](https://github.com/datafusion-contrib/datafusion-functions-json) crate
+
+## Related Projects
+- [`kamu-cli`](https://github.com/kamu-data/kamu-cli) - verifiable data processing toolset that can ingest data from blockchains and provide it to smart contracts as a new-generation oracle.
