@@ -30,4 +30,5 @@ pretty_assertions = { version = "1" }
 test-log = { version = "0.2", features = ["trace"] }
 
 [patch.crates-io]
+# TODO: https://github.com/datafusion-contrib/datafusion-functions-json/issues/12
 datafusion-functions-json = { git = 'https://github.com/kamu-data/datafusion-functions-json.git', branch = "pin-jiter" }
