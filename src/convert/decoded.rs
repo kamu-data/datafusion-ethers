@@ -1,15 +1,19 @@
-use alloy_core::dyn_abi::{DecodedEvent, DynSolType, DynSolValue, Specifier};
+use alloy_core::dyn_abi::{DecodedEvent, DynSolEvent, DynSolType, DynSolValue, Specifier};
 use alloy_core::json_abi::{Event, EventParam};
-use alloy_core::primitives::Address;
+use alloy_core::primitives::{Address, B256};
 use datafusion::arrow::array::{self, Array, ArrayBuilder, RecordBatch};
 use datafusion::arrow::datatypes::{DataType, Field, Schema, SchemaRef};
+use ethers::prelude::*;
 use std::sync::Arc;
+
+use super::{AppendError, Transcoder};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Transcodes decoded Ethereum log events into Arrow record batches
 pub struct EthDecodedLogsToArrow {
     schema: SchemaRef,
+    event_decoder: DynSolEvent,
     /// The layout is indexed fields first, then data - to correspond to how [DecodedEvent] stores fields
     field_builders: Vec<Box<dyn SolidityArrayBuilder>>,
 }
@@ -40,34 +44,20 @@ impl EthDecodedLogsToArrow {
 
         Self {
             schema: Arc::new(Schema::new(fields)),
+            event_decoder: resolved_type,
             field_builders,
         }
     }
 
-    pub fn schema(&self) -> SchemaRef {
-        self.schema.clone()
-    }
-
-    pub fn append(&mut self, logs: &[DecodedEvent]) {
-        for log in logs {
-            for (val, builder) in log
-                .indexed
-                .iter()
-                .chain(log.body.iter())
-                .zip(self.field_builders.iter_mut())
-            {
-                builder.append_value(val);
-            }
+    pub fn push_decoded(&mut self, log: &DecodedEvent) {
+        for (val, builder) in log
+            .indexed
+            .iter()
+            .chain(log.body.iter())
+            .zip(self.field_builders.iter_mut())
+        {
+            builder.append_value(val);
         }
-    }
-
-    pub fn len(&self) -> usize {
-        self.field_builders[0].len()
-    }
-
-    pub fn finish(&mut self) -> RecordBatch {
-        let columns = self.field_builders.iter_mut().map(|b| b.finish()).collect();
-        RecordBatch::try_new(self.schema.clone(), columns).unwrap()
     }
 
     fn event_param_to_field(
@@ -99,6 +89,34 @@ impl EthDecodedLogsToArrow {
                 "Support for transcoding {typ} solidity type to arrow is not yet implemented",
             ),
         }
+    }
+}
+
+impl Transcoder for EthDecodedLogsToArrow {
+    fn schema(&self) -> SchemaRef {
+        self.schema.clone()
+    }
+
+    fn append(&mut self, logs: &[Log]) -> Result<(), AppendError> {
+        for log in logs {
+            let decoded = self.event_decoder.decode_log_parts(
+                log.topics.iter().map(|t| B256::new(t.0)),
+                &log.data,
+                true,
+            )?;
+
+            self.push_decoded(&decoded);
+        }
+        Ok(())
+    }
+
+    fn len(&self) -> usize {
+        self.field_builders[0].len()
+    }
+
+    fn finish(&mut self) -> RecordBatch {
+        let columns = self.field_builders.iter_mut().map(|b| b.finish()).collect();
+        RecordBatch::try_new(self.schema.clone(), columns).unwrap()
     }
 }
 

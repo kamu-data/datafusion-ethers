@@ -3,6 +3,8 @@ use datafusion::arrow::datatypes::{DataType, Field, Schema, SchemaRef};
 use ethers::prelude::*;
 use std::sync::Arc;
 
+use super::{AppendError, Transcoder};
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Transcodes decoded Ethereum log events into Arrow record batches
@@ -50,13 +52,15 @@ impl EthRawLogsToArrow {
             data: array::BinaryBuilder::new(),
         }
     }
+}
 
-    pub fn schema(&self) -> SchemaRef {
+impl Transcoder for EthRawLogsToArrow {
+    fn schema(&self) -> SchemaRef {
         self.schema.clone()
     }
 
     #[allow(clippy::get_first)]
-    pub fn append(&mut self, logs: &[Log]) {
+    fn append(&mut self, logs: &[Log]) -> Result<(), AppendError> {
         for log in logs {
             self.block_number
                 .append_value(log.block_number.unwrap().as_u64());
@@ -81,13 +85,15 @@ impl EthRawLogsToArrow {
 
             self.data.append_value(&log.data);
         }
+
+        Ok(())
     }
 
-    pub fn len(&self) -> usize {
+    fn len(&self) -> usize {
         self.block_number.len()
     }
 
-    pub fn finish(&mut self) -> array::RecordBatch {
+    fn finish(&mut self) -> array::RecordBatch {
         array::RecordBatch::try_new(
             self.schema.clone(),
             vec![

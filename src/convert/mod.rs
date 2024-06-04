@@ -2,6 +2,8 @@ mod decoded;
 mod hybrid;
 mod raw;
 
+use datafusion::arrow::array::RecordBatch;
+use datafusion::arrow::datatypes::SchemaRef;
 pub use decoded::*;
 pub use hybrid::*;
 pub use raw::*;
@@ -10,6 +12,21 @@ use datafusion::error::Result as DfResult;
 use datafusion::execution::context::SessionContext;
 use datafusion::physical_plan::ExecutionPlan;
 use ethers::prelude::*;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+pub trait Transcoder {
+    fn schema(&self) -> SchemaRef;
+    fn append(&mut self, logs: &[Log]) -> Result<(), AppendError>;
+    fn len(&self) -> usize;
+    fn finish(&mut self) -> RecordBatch;
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum AppendError {
+    #[error(transparent)]
+    EventDecodingError(#[from] alloy_core::dyn_abi::Error),
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 

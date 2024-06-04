@@ -1394,6 +1394,7 @@ dependencies = [
  "pretty_assertions",
  "serde_json",
  "test-log",
+ "thiserror",
  "tokio",
  "tracing",
  "tracing-subscriber",

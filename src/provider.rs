@@ -23,6 +23,7 @@ use futures::Stream;
 use std::{any::Any, sync::Arc};
 
 use crate::config::EthProviderConfig;
+use crate::convert::Transcoder as _;
 use crate::utils::*;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -427,7 +428,7 @@ impl<P: JsonRpcClient + 'static> EthGetLogs<P> {
                 returned += 1;
             }
 
-            coder.append(&logs);
+            coder.append(&logs).unwrap();
             let batch = coder.finish();
 
             let batch = if let Some(projection) = projection {

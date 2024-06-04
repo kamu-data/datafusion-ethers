@@ -1,10 +1,9 @@
 use std::sync::Arc;
 
-use alloy_core::dyn_abi::EventExt;
 use alloy_core::hex;
-use alloy_core::primitives::B256;
 use alloy_core::sol_types::SolEvent;
 use datafusion::prelude::*;
+use datafusion_ethers::convert::Transcoder as _;
 use ethers::prelude::*;
 use indoc::indoc;
 
@@ -56,7 +55,7 @@ fn get_sample_log() -> Log {
 #[test_log::test(tokio::test)]
 async fn test_raw_logs_to_record_batch() {
     let mut coder = datafusion_ethers::convert::EthRawLogsToArrow::new();
-    coder.append(&[get_sample_log()]);
+    coder.append(&[get_sample_log()]).unwrap();
     let batch = coder.finish();
 
     let ctx = SessionContext::new();
@@ -107,13 +106,8 @@ async fn test_decoded_logs_to_record_batch() {
     )
     .unwrap();
 
-    let log = get_sample_log();
-    let log = event
-        .decode_log_parts(log.topics.iter().map(|t| B256::new(t.0)), &log.data, true)
-        .unwrap();
-
     let mut coder = datafusion_ethers::convert::EthDecodedLogsToArrow::new(&event);
-    coder.append(&[log]);
+    coder.append(&[get_sample_log()]).unwrap();
     let batch = coder.finish();
 
     let ctx = SessionContext::new();
@@ -213,7 +207,7 @@ async fn test_udf_eth_decode_event() {
     datafusion_ethers::udf::register_all(&mut ctx).unwrap();
 
     let mut coder = datafusion_ethers::convert::EthRawLogsToArrow::new();
-    coder.append(&[get_sample_log()]);
+    coder.append(&[get_sample_log()]).unwrap();
     let batch = coder.finish();
     ctx.register_batch("logs", batch).unwrap();
 
