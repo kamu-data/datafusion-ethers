@@ -18,13 +18,20 @@ The crate also provides UDFs (a set of custom SQL functions) for ABI decoding.
 
 The crate is currently designed for embedding, but the goal is also to provide an application that supports [FlightSQL](https://arrow.apache.org/docs/format/FlightSql.html) protocol and streaming data queries.
 
+While the crate currently relies on semi-deprecated [`ethers` crate](https://github.com/gakonst/ethers-rs) we will be moving it progressively to [`alloy`](https://github.com/alloy-rs/alloy) as it matures - any help with that is much appreciated.
+
+
 ## Quick Start
 ```rust
 // Create `ethers` RPC client
 let rpc_client = Arc::new(Provider::<Http>::connect("http://localhost:8545").await);
 
+// Add config extension with RPC endpoint URL
+let mut cfg = SessionConfig::new()
+    .with_option_extension(datafusion_ethers::config::EthProviderConfig::default());
+
 // Create `datafusion` session
-let mut ctx = SessionContext::new();
+let mut ctx = SessionContext::new_with_config(cfg);
 
 // Register all UDFs
 datafusion_ethers::udf::register_all(&mut ctx).unwrap();
@@ -124,17 +131,26 @@ from (
 +-------------+------------+------------------------------------------+----------+
 ```
 
+> Note: Currently DataFusion does not allow UDFs to produce different resulting data types depending on the arguments. Therefore we cannot analyze the event signature literal and return a corresponding nested struct from the UDF. Therefore we have to use JSON as a return value. If you would like to skip JSON and go directly to the nested struct take a look at `EthDecodedLogsToArrow` and `EthRawAndDecodedLogsToArrow` transcoders.
+
 ## Supported Features
 - Table: `logs`
   - Can be used to access transaction log events, with schema corresponding closely to [`eth_getLogs`](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_getlogs) RPC method
   - Supports predicate push-down on `block_number`, `block_hash`, `address`, `topic[0-3]`
   - Supports `limit`
+- Config options:
+  - `block_range_from` (default `earliest`) - lower boundry (inclusive) restriction on block range when pushing down predicate to the node
+  - `block_range_to` (default `latest`)  - upper boundry (inclusive) restriction on block range when pushing down predicate to the node",
 - UDF: `eth_event_selector(<solidity log signature>): hash`
   - Converts Solidity log signature into a hash
   - Useful for filtering events by `topic0`
-- UDF: `eth_decode_event(<solidity log signature>), topic0, topic1, topic2, topic3, data): json string`
+- UDF: `eth_(try_)decode_event(<solidity log signature>), topic0, topic1, topic2, topic3, data): json string`
   - Decodes raw event data into JSON string
   - JSON can then be further processed using [`datafusion-functions-json`](https://github.com/datafusion-contrib/datafusion-functions-json) crate
+- Transcoders:
+  - `EthRawLogsToArrow` - convers raw log data into Arrow record batches
+  - `EthDecodedLogsToArrow` - convers decoded log data into Arrow record batches
+  - `EthRawAndDecodedLogsToArrow` - given raw log data and an event type and produces Arrow record batches with raw data columns and with decoded event columns as a nested struct
 
 ## Related Projects
 - [`kamu-cli`](https://github.com/kamu-data/kamu-cli) - verifiable data processing toolset that can ingest data from blockchains and provide it to smart contracts as a new-generation oracle.

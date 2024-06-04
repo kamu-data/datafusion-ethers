@@ -2,17 +2,17 @@ use indoc::indoc;
 use std::{path::PathBuf, sync::Arc};
 
 use alloy_core::hex::ToHexExt;
-use datafusion::prelude::*;
+use datafusion::{config::ConfigOptions, prelude::*};
 use ethers::{prelude::*, utils::AnvilInstance};
 
-////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 abigen!(
     TestContract,
     "tests/contracts/out/Contract.sol/Contract.json"
 );
 
-////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 async fn setup_chain_state() -> (AnvilInstance, Arc<Provider<impl JsonRpcClient>>) {
     let anvil = ethers::core::utils::Anvil::new().spawn();
@@ -65,15 +65,27 @@ async fn setup_chain_state() -> (AnvilInstance, Arc<Provider<impl JsonRpcClient>
     (anvil, rpc_client)
 }
 
-////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 async fn test_pushdown_common(sql: &str, expected_plan: &str, expected_data: &str) {
+    test_pushdown_common_cfg(|_| {}, sql, expected_plan, expected_data).await
+}
+
+async fn test_pushdown_common_cfg(
+    set_cfg: impl FnOnce(&mut ConfigOptions),
+    sql: &str,
+    expected_plan: &str,
+    expected_data: &str,
+) {
     let (_anvil, rpc_client) = setup_chain_state().await;
 
     // Turn off extra optimizations that create noise in prhysical plans
-    let cfg = SessionConfig::new()
+    let mut cfg = SessionConfig::new()
         .with_target_partitions(1)
-        .with_coalesce_batches(false);
+        .with_coalesce_batches(false)
+        .with_option_extension(datafusion_ethers::config::EthProviderConfig::default());
+
+    set_cfg(cfg.options_mut());
 
     let mut df_ctx = SessionContext::new_with_config(cfg);
     datafusion_ethers::udf::register_all(&mut df_ctx).unwrap();
@@ -96,7 +108,7 @@ async fn test_pushdown_common(sql: &str, expected_plan: &str, expected_data: &st
     super::utils::assert_data_eq(df, expected_data).await;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 #[test_log::test(tokio::test)]
 async fn test_scan() {
@@ -173,7 +185,7 @@ async fn test_scan() {
     ).await;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 #[test_log::test(tokio::test)]
 async fn test_project() {
@@ -244,7 +256,7 @@ async fn test_project() {
     ).await;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 #[test_log::test(tokio::test)]
 async fn test_predicate_pushdown_address_single() {
@@ -275,7 +287,6 @@ async fn test_predicate_pushdown_address_single() {
 }
 
 #[test_log::test(tokio::test)]
-#[ignore = "Not yet implemented"]
 async fn test_predicate_pushdown_address_many() {
     test_pushdown_common(
         indoc!(
@@ -287,7 +298,7 @@ async fn test_predicate_pushdown_address_many() {
         ),
         indoc!(
             r#"
-            EthGetLogs: projection=[block_number, block_hash, transaction_index, transaction_hash, log_index, address, topic0, topic1, topic2, topic3, data], filter=[address=0x5fbd…0aa3, block_number=[Some(Earliest), Some(Latest)]]
+            EthGetLogs: projection=[block_number, block_hash, transaction_index, transaction_hash, log_index, address, topic0, topic1, topic2, topic3, data], filter=[address=0x5fbd…0aa3 or 0xe7f1…0512, block_number=[Some(Earliest), Some(Latest)]]
             "#
         ),
         indoc!(
@@ -297,13 +308,15 @@ async fn test_predicate_pushdown_address_many() {
             +--------------+------------+-------------------+------------------------------------------------------------------+-----------+------------------------------------------+------------------------------------------------------------------+------------------------------------------------------------------+------------------------------------------------------------------+--------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
             | 3            | -          | 0                 | ddba13f2509c99ce7f194cf77d754b4134255e24c1b104eddc4cb690c5582379 | 0         | 5fbdb2315678afecb367f032d93f642f64180aa3 | d9e93ef3ac030ca8925f1725575c96d8a49bd825c0843a168225c1bb686bba67 | 000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266 | 000000000000000000000000000000000000000000000000000000000000007b |        |                                                                                                                                                                                                  |
             | 3            | -          | 0                 | ddba13f2509c99ce7f194cf77d754b4134255e24c1b104eddc4cb690c5582379 | 1         | 5fbdb2315678afecb367f032d93f642f64180aa3 | da343a831f3915a0c465305afdd6b0f1c8a3c85635bb14272bf16b6de3664a51 | 0000000000000000000000005fbdb2315678afecb367f032d93f642f64180aa3 |                                                                  |        | 00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000005612d626172000000000000000000000000000000000000000000000000000000 |
+            | 4            | -          | 0                 | 554478d501eee16dcd25f6bd30be3a2251daf9a02e643d152fcfc59934a87fbd | 0         | e7f1725e7734ce288f8367e1bb143e90bb3f0512 | d9e93ef3ac030ca8925f1725575c96d8a49bd825c0843a168225c1bb686bba67 | 000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266 | 000000000000000000000000000000000000000000000000000000000000007b |        |                                                                                                                                                                                                  |
+            | 4            | -          | 0                 | 554478d501eee16dcd25f6bd30be3a2251daf9a02e643d152fcfc59934a87fbd | 1         | e7f1725e7734ce288f8367e1bb143e90bb3f0512 | da343a831f3915a0c465305afdd6b0f1c8a3c85635bb14272bf16b6de3664a51 | 000000000000000000000000e7f1725e7734ce288f8367e1bb143e90bb3f0512 |                                                                  |        | 00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000005612d626172000000000000000000000000000000000000000000000000000000 |
             +--------------+------------+-------------------+------------------------------------------------------------------+-----------+------------------------------------------+------------------------------------------------------------------+------------------------------------------------------------------+------------------------------------------------------------------+--------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
             "#
         ),
     ).await;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 #[test_log::test(tokio::test)]
 async fn test_predicate_pushdown_block_number_binary() {
@@ -406,7 +419,7 @@ async fn test_predicate_pushdown_block_number_binary() {
     ).await;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 #[test_log::test(tokio::test)]
 async fn test_predicate_pushdown_block_number_range() {
@@ -415,7 +428,7 @@ async fn test_predicate_pushdown_block_number_range() {
             r#"
             select *
             from eth.eth.logs
-            where block_number >= 3 and block_number <= 4
+            where block_number > 1 and block_number >= 3 and block_number <= 4 and block_number <= 40
             "#
         ),
         indoc!(
@@ -442,7 +455,7 @@ async fn test_predicate_pushdown_block_number_range() {
             r#"
             select *
             from eth.eth.logs
-            where block_number between 2 and 4
+            where block_number between 2 and 4 and block_number between 0 and 100
             "#
         ),
         indoc!(
@@ -465,7 +478,43 @@ async fn test_predicate_pushdown_block_number_range() {
     ).await;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+#[test_log::test(tokio::test)]
+async fn test_predicate_pushdown_block_number_range_with_config() {
+    test_pushdown_common_cfg(
+        |cfg| {
+            cfg.set("ethereum.block_range_from", "3").unwrap();
+            cfg.set("ethereum.block_range_to", "4").unwrap();
+        },
+        indoc!(
+            r#"
+            select *
+            from eth.eth.logs
+            where block_number >= 1 and block_number <= 100
+            "#
+        ),
+        indoc!(
+            r#"
+            EthGetLogs: projection=[block_number, block_hash, transaction_index, transaction_hash, log_index, address, topic0, topic1, topic2, topic3, data], filter=[block_number=[Some(Number(3)), Some(Number(4))]]
+            "#
+        ),
+        indoc!(
+            r#"
+            +--------------+------------+-------------------+------------------------------------------------------------------+-----------+------------------------------------------+------------------------------------------------------------------+------------------------------------------------------------------+------------------------------------------------------------------+--------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+            | block_number | block_hash | transaction_index | transaction_hash                                                 | log_index | address                                  | topic0                                                           | topic1                                                           | topic2                                                           | topic3 | data                                                                                                                                                                                             |
+            +--------------+------------+-------------------+------------------------------------------------------------------+-----------+------------------------------------------+------------------------------------------------------------------+------------------------------------------------------------------+------------------------------------------------------------------+--------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+            | 3            | -          | 0                 | ddba13f2509c99ce7f194cf77d754b4134255e24c1b104eddc4cb690c5582379 | 0         | 5fbdb2315678afecb367f032d93f642f64180aa3 | d9e93ef3ac030ca8925f1725575c96d8a49bd825c0843a168225c1bb686bba67 | 000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266 | 000000000000000000000000000000000000000000000000000000000000007b |        |                                                                                                                                                                                                  |
+            | 3            | -          | 0                 | ddba13f2509c99ce7f194cf77d754b4134255e24c1b104eddc4cb690c5582379 | 1         | 5fbdb2315678afecb367f032d93f642f64180aa3 | da343a831f3915a0c465305afdd6b0f1c8a3c85635bb14272bf16b6de3664a51 | 0000000000000000000000005fbdb2315678afecb367f032d93f642f64180aa3 |                                                                  |        | 00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000005612d626172000000000000000000000000000000000000000000000000000000 |
+            | 4            | -          | 0                 | 554478d501eee16dcd25f6bd30be3a2251daf9a02e643d152fcfc59934a87fbd | 0         | e7f1725e7734ce288f8367e1bb143e90bb3f0512 | d9e93ef3ac030ca8925f1725575c96d8a49bd825c0843a168225c1bb686bba67 | 000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266 | 000000000000000000000000000000000000000000000000000000000000007b |        |                                                                                                                                                                                                  |
+            | 4            | -          | 0                 | 554478d501eee16dcd25f6bd30be3a2251daf9a02e643d152fcfc59934a87fbd | 1         | e7f1725e7734ce288f8367e1bb143e90bb3f0512 | da343a831f3915a0c465305afdd6b0f1c8a3c85635bb14272bf16b6de3664a51 | 000000000000000000000000e7f1725e7734ce288f8367e1bb143e90bb3f0512 |                                                                  |        | 00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000005612d626172000000000000000000000000000000000000000000000000000000 |
+            +--------------+------------+-------------------+------------------------------------------------------------------+-----------+------------------------------------------+------------------------------------------------------------------+------------------------------------------------------------------+------------------------------------------------------------------+--------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+            "#
+        ),
+    ).await;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 #[test_log::test(tokio::test)]
 async fn test_predicate_pushdown_topic_0_literal() {
@@ -495,7 +544,7 @@ async fn test_predicate_pushdown_topic_0_literal() {
     ).await;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 #[test_log::test(tokio::test)]
 async fn test_predicate_pushdown_topic_0_selector() {
@@ -525,7 +574,7 @@ async fn test_predicate_pushdown_topic_0_selector() {
     ).await;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 #[test_log::test(tokio::test)]
 async fn test_predicate_pushdown_topics_many_and() {
@@ -560,10 +609,9 @@ async fn test_predicate_pushdown_topics_many_and() {
     ).await;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 #[test_log::test(tokio::test)]
-#[ignore = "Composite filter expressions are not yet supported"]
 async fn test_predicate_pushdown_topics_many_mixed() {
     test_pushdown_common(
         indoc!(
@@ -584,7 +632,7 @@ async fn test_predicate_pushdown_topics_many_mixed() {
         ),
         indoc!(
             r#"
-            EthGetLogs: projection=[block_number, block_hash, transaction_index, transaction_hash, log_index, address, topic0, topic1, topic2, topic3, data], filter=[block_number=[Some(Earliest), Some(Latest)], topic0=0xd9e9…ba67, topic1=0x0000…2266, topic2=0x0000…007b]
+            EthGetLogs: projection=[block_number, block_hash, transaction_index, transaction_hash, log_index, address, topic0, topic1, topic2, topic3, data], filter=[block_number=[Some(Earliest), Some(Latest)], topic0=0xd9e9…ba67 or 0xda34…4a51, topic1=0x0000…2266, topic2=0x0000…007b]
             "#
         ),
         indoc!(
@@ -600,7 +648,7 @@ async fn test_predicate_pushdown_topics_many_mixed() {
     ).await;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 #[test_log::test(tokio::test)]
 async fn test_predicate_pushdown_limit() {
@@ -632,7 +680,7 @@ async fn test_predicate_pushdown_limit() {
     ).await;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 #[test_log::test(tokio::test)]
 async fn test_predicate_pushdown_unsupported() {
@@ -662,4 +710,4 @@ async fn test_predicate_pushdown_unsupported() {
     ).await;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////

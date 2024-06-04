@@ -2,6 +2,7 @@ use datafusion::catalog::schema::SchemaProvider;
 use datafusion::catalog::CatalogProvider;
 use datafusion::error::Result as DfResult;
 use datafusion::execution::TaskContext;
+use datafusion::logical_expr::BinaryExpr;
 use datafusion::physical_expr::EquivalenceProperties;
 use datafusion::physical_plan::stream::RecordBatchStreamAdapter;
 use datafusion::physical_plan::{DisplayAs, DisplayFormatType, PlanProperties};
@@ -21,9 +22,12 @@ use ethers::prelude::*;
 use futures::Stream;
 use std::{any::Any, sync::Arc};
 
-////////////////////////////////////////////////////////////////////////////////////////
+use crate::config::EthProviderConfig;
+use crate::utils::*;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
 // Catalog
-////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 pub struct EthCatalog<P> {
     rpc_client: Arc<Provider<P>>,
@@ -52,9 +56,9 @@ impl<P: JsonRpcClient + 'static> CatalogProvider for EthCatalog<P> {
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 // Schema
-////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 pub struct EthSchema<P> {
     rpc_client: Arc<Provider<P>>,
@@ -88,9 +92,9 @@ impl<P: JsonRpcClient + 'static> SchemaProvider for EthSchema<P> {
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 // Table: eth_logs
-////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 pub struct EthLogsTable<P> {
     schema: SchemaRef,
@@ -114,12 +118,6 @@ impl<P: JsonRpcClient + 'static> EthLogsTable<P> {
         ]));
 
         Self { schema, rpc_client }
-    }
-
-    fn default_filter() -> Filter {
-        Filter::new()
-            .from_block(BlockNumber::Earliest)
-            .to_block(BlockNumber::Latest)
     }
 
     fn apply_expr(filter: Filter, expr: &Expr) -> (TableProviderFilterPushDown, Filter) {
@@ -149,37 +147,127 @@ impl<P: JsonRpcClient + 'static> EthLogsTable<P> {
                     ("block_number", Operator::Eq, Expr::Literal(ScalarValue::UInt64(Some(v)))) => {
                         (
                             TableProviderFilterPushDown::Exact,
-                            filter.from_block(*v).to_block(*v),
+                            filter.union((*v).into(), (*v).into()),
                         )
                     }
                     ("block_number", Operator::Gt, Expr::Literal(ScalarValue::UInt64(Some(v)))) => {
                         (
                             TableProviderFilterPushDown::Exact,
-                            filter.from_block(*v + 1),
+                            filter.union((*v + 1).into(), BlockNumber::Latest),
                         )
                     }
                     (
                         "block_number",
                         Operator::GtEq,
                         Expr::Literal(ScalarValue::UInt64(Some(v))),
-                    ) => (TableProviderFilterPushDown::Exact, filter.from_block(*v)),
+                    ) => (
+                        TableProviderFilterPushDown::Exact,
+                        filter.union((*v).into(), BlockNumber::Latest),
+                    ),
                     ("block_number", Operator::Lt, Expr::Literal(ScalarValue::UInt64(Some(v)))) => {
-                        (TableProviderFilterPushDown::Exact, filter.to_block(*v - 1))
+                        (
+                            TableProviderFilterPushDown::Exact,
+                            filter.union(BlockNumber::Earliest, (*v - 1).into()),
+                        )
                     }
                     (
                         "block_number",
                         Operator::LtEq,
                         Expr::Literal(ScalarValue::UInt64(Some(v))),
-                    ) => (TableProviderFilterPushDown::Exact, filter.to_block(*v)),
+                    ) => (
+                        TableProviderFilterPushDown::Exact,
+                        filter.union(BlockNumber::Earliest, (*v).into()),
+                    ),
                     _ => (TableProviderFilterPushDown::Unsupported, filter),
                 },
                 // expr OR expr OR ...
                 (Expr::BinaryExpr(_), Operator::Or, Expr::BinaryExpr(_)) => {
-                    todo!()
+                    match Self::collect_or_group(e) {
+                        (TableProviderFilterPushDown::Exact, Some(col), values) => {
+                            match col.name.as_str() {
+                                "address" => (
+                                    TableProviderFilterPushDown::Exact,
+                                    filter.address(
+                                        values
+                                            .into_iter()
+                                            .map(|v| Address::from_slice(&v[..]))
+                                            .collect::<Vec<_>>(),
+                                    ),
+                                ),
+                                "topic0" => (
+                                    TableProviderFilterPushDown::Exact,
+                                    filter.topic0(
+                                        values
+                                            .into_iter()
+                                            .map(|v| H256::from_slice(&v[..]))
+                                            .collect::<Vec<_>>(),
+                                    ),
+                                ),
+                                "topic1" => (
+                                    TableProviderFilterPushDown::Exact,
+                                    filter.topic1(
+                                        values
+                                            .into_iter()
+                                            .map(|v| H256::from_slice(&v[..]))
+                                            .collect::<Vec<_>>(),
+                                    ),
+                                ),
+                                "topic2" => (
+                                    TableProviderFilterPushDown::Exact,
+                                    filter.topic2(
+                                        values
+                                            .into_iter()
+                                            .map(|v| H256::from_slice(&v[..]))
+                                            .collect::<Vec<_>>(),
+                                    ),
+                                ),
+                                "topic3" => (
+                                    TableProviderFilterPushDown::Exact,
+                                    filter.topic3(
+                                        values
+                                            .into_iter()
+                                            .map(|v| H256::from_slice(&v[..]))
+                                            .collect::<Vec<_>>(),
+                                    ),
+                                ),
+                                _ => (TableProviderFilterPushDown::Unsupported, filter),
+                            }
+                        }
+                        _ => (TableProviderFilterPushDown::Unsupported, filter),
+                    }
                 }
                 _ => (TableProviderFilterPushDown::Unsupported, filter),
             },
             _ => (TableProviderFilterPushDown::Unsupported, filter),
+        }
+    }
+
+    /// Converts expressions like:
+    ///   x = v1 or (x = v2 or (x = v3))
+    /// into:
+    ///   [v1, v2, v3]
+    fn collect_or_group(
+        expr: &BinaryExpr,
+    ) -> (TableProviderFilterPushDown, Option<&Column>, Vec<&Vec<u8>>) {
+        match (&*expr.left, expr.op, &*expr.right) {
+            (Expr::Column(col), Operator::Eq, Expr::Literal(ScalarValue::Binary(Some(val)))) => {
+                (TableProviderFilterPushDown::Exact, Some(col), vec![val])
+            }
+            (Expr::BinaryExpr(left), Operator::Or, Expr::BinaryExpr(right)) => {
+                // Merge values from two branches, but only if they refer to the same column
+                let mut left = Self::collect_or_group(left);
+                let mut right = Self::collect_or_group(right);
+                if left.0 == right.0
+                    && right.0 == TableProviderFilterPushDown::Exact
+                    && left.1 == right.1
+                {
+                    left.2.append(&mut right.2);
+                    (TableProviderFilterPushDown::Exact, left.1, left.2)
+                } else {
+                    (TableProviderFilterPushDown::Unsupported, None, Vec::new())
+                }
+            }
+            _ => (TableProviderFilterPushDown::Unsupported, None, Vec::new()),
         }
     }
 }
@@ -204,7 +292,7 @@ impl<P: JsonRpcClient + 'static> TableProvider for EthLogsTable<P> {
     ) -> datafusion::error::Result<Vec<TableProviderFilterPushDown>> {
         tracing::debug!(?filters, "EthLogs: performing filter pushdown");
 
-        let mut filter = Self::default_filter();
+        let mut filter = EthProviderConfig::default().default_filter();
         let mut res = Vec::new();
 
         for expr in filters {
@@ -219,7 +307,7 @@ impl<P: JsonRpcClient + 'static> TableProvider for EthLogsTable<P> {
 
     async fn scan(
         &self,
-        _state: &SessionState,
+        state: &SessionState,
         projection: Option<&Vec<usize>>,
         filters: &[Expr],
         limit: Option<usize>,
@@ -237,12 +325,26 @@ impl<P: JsonRpcClient + 'static> TableProvider for EthLogsTable<P> {
             self.schema.clone()
         };
 
-        let mut filter = Self::default_filter();
+        let mut filter =
+            if let Some(cfg) = state.config_options().extensions.get::<EthProviderConfig>() {
+                cfg.default_filter()
+            } else {
+                EthProviderConfig::default().default_filter()
+            };
 
+        // Push down filter expressions from the query
         for expr in filters {
             let (support, new_filter) = Self::apply_expr(filter, expr);
             assert_eq!(support, TableProviderFilterPushDown::Exact);
             filter = new_filter;
+        }
+
+        // Apply range restrictions from the session config level
+        if let Some(cfg) = state.config_options().extensions.get::<EthProviderConfig>() {
+            filter.block_option = filter.block_option.union(FilterBlockOption::Range {
+                from_block: Some(cfg.block_range_from),
+                to_block: Some(cfg.block_range_to),
+            });
         }
 
         // TODO verify filter does not cause a full-scan
@@ -257,10 +359,10 @@ impl<P: JsonRpcClient + 'static> TableProvider for EthLogsTable<P> {
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#[derive(Debug)]
-struct EthGetLogs<P> {
+#[derive(Debug, Clone)]
+pub struct EthGetLogs<P> {
     projected_schema: SchemaRef,
     projection: Option<Vec<usize>>,
     rpc_client: Arc<Provider<P>>,
@@ -292,6 +394,15 @@ impl<P: JsonRpcClient + 'static> EthGetLogs<P> {
         }
     }
 
+    pub fn filter(&self) -> &Filter {
+        &self.filter
+    }
+
+    pub fn with_filter(mut self, filter: Filter) -> Self {
+        self.filter = filter;
+        self
+    }
+
     fn execute_impl(
         rpc_client: Arc<Provider<P>>,
         filter: Filter,
@@ -299,8 +410,11 @@ impl<P: JsonRpcClient + 'static> EthGetLogs<P> {
         limit: Option<usize>,
     ) -> impl Stream<Item = DfResult<RecordBatch>> {
         async_stream::try_stream! {
-            let mut returned = 0;
             let limit = limit.unwrap_or(usize::MAX);
+            let mut coder = crate::convert::EthRawLogsToArrow::new();
+            let mut returned = 0;
+
+            // TODO: Streaming API
             let mut log_stream = rpc_client.get_logs_paginated(&filter, 100_000);
 
             let mut logs = Vec::new();
@@ -313,7 +427,8 @@ impl<P: JsonRpcClient + 'static> EthGetLogs<P> {
                 returned += 1;
             }
 
-            let batch = crate::convert::logs_to_record_batch(logs);
+            coder.append(&logs);
+            let batch = coder.finish();
 
             let batch = if let Some(projection) = projection {
                 batch.project(&projection)?
@@ -386,8 +501,15 @@ impl<P: JsonRpcClient + 'static> DisplayAs for EthGetLogs<P> {
                 }
 
                 let mut filters = Vec::new();
-                if let Some(ValueOrArray::Value(addr)) = &self.filter.address {
-                    filters.push(format!("address={}", addr));
+                match &self.filter.address {
+                    Some(ValueOrArray::Value(addr)) => {
+                        filters.push(format!("address={}", addr));
+                    }
+                    Some(ValueOrArray::Array(v)) => {
+                        let vals: Vec<_> = v.iter().map(|h| h.to_string()).collect();
+                        filters.push(format!("address={}", vals.join(" or ")));
+                    }
+                    _ => {}
                 }
                 match self.filter.block_option {
                     FilterBlockOption::Range {
@@ -398,8 +520,16 @@ impl<P: JsonRpcClient + 'static> DisplayAs for EthGetLogs<P> {
                 }
                 if self.filter.topics.iter().any(|t| t.is_some()) {
                     for (i, t) in self.filter.topics.iter().enumerate() {
-                        if let Some(ValueOrArray::Value(Some(h))) = t {
-                            filters.push(format!("topic{}={}", i, h));
+                        match t {
+                            Some(ValueOrArray::Value(Some(h))) => {
+                                filters.push(format!("topic{}={}", i, h));
+                            }
+                            Some(ValueOrArray::Array(v)) => {
+                                let vals: Vec<_> =
+                                    v.iter().map(|h| h.as_ref().unwrap().to_string()).collect();
+                                filters.push(format!("topic{}={}", i, vals.join(" or ")));
+                            }
+                            _ => {}
                         }
                     }
                 }
@@ -415,4 +545,4 @@ impl<P: JsonRpcClient + 'static> DisplayAs for EthGetLogs<P> {
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
