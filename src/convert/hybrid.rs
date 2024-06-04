@@ -33,6 +33,11 @@ impl EthRawAndDecodedLogsToArrow {
             decoded,
         }
     }
+
+    pub fn new_from_signature(signature: &str) -> Result<Self, alloy_core::dyn_abi::parser::Error> {
+        let event_type = alloy_core::json_abi::Event::parse(signature)?;
+        Ok(Self::new(&event_type))
+    }
 }
 
 impl Transcoder for EthRawAndDecodedLogsToArrow {

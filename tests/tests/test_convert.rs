@@ -145,12 +145,10 @@ async fn test_decoded_logs_to_record_batch() {
 
 #[test_log::test(tokio::test)]
 async fn test_raw_and_decoded_logs_to_record_batch() {
-    let event = alloy_core::json_abi::Event::parse(
+    let mut coder = datafusion_ethers::convert::EthRawAndDecodedLogsToArrow::new_from_signature(
         "event SendRequest(uint64 indexed requestId, address indexed consumerAddr, bytes request)",
     )
     .unwrap();
-
-    let mut coder = datafusion_ethers::convert::EthRawAndDecodedLogsToArrow::new(&event);
     coder.append(&[get_sample_log()]).unwrap();
     let batch = coder.finish();
 

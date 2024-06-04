@@ -49,6 +49,11 @@ impl EthDecodedLogsToArrow {
         }
     }
 
+    pub fn new_from_signature(signature: &str) -> Result<Self, alloy_core::dyn_abi::parser::Error> {
+        let event_type = alloy_core::json_abi::Event::parse(signature)?;
+        Ok(Self::new(&event_type))
+    }
+
     pub fn push_decoded(&mut self, log: &DecodedEvent) {
         for (val, builder) in log
             .indexed
