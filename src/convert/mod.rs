@@ -20,6 +20,9 @@ pub trait Transcoder {
     fn append(&mut self, logs: &[Log]) -> Result<(), AppendError>;
     fn len(&self) -> usize;
     fn finish(&mut self) -> RecordBatch;
+    fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
 }
 
 #[derive(Debug, thiserror::Error)]

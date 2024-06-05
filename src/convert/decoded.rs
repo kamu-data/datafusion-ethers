@@ -72,31 +72,31 @@ impl EthDecodedLogsToArrow {
         match typ {
             DynSolType::Bool => (
                 Field::new(&param.name, DataType::Boolean, false),
-                Box::new(SolidityArrayBuilderBool::default()),
+                Box::<SolidityArrayBuilderBool>::default(),
             ),
             DynSolType::Int(64) => (
                 Field::new(&param.name, DataType::Int64, false),
-                Box::new(SolidityArrayBuilderInt64::default()),
+                Box::<SolidityArrayBuilderInt64>::default(),
             ),
             DynSolType::Int(128) => (
                 Field::new(&param.name, DataType::Utf8, false),
-                Box::new(SolidityArrayBuilderInt128::default()),
+                Box::<SolidityArrayBuilderInt128>::default(),
             ),
             DynSolType::Int(256) => (
                 Field::new(&param.name, DataType::Utf8, false),
-                Box::new(SolidityArrayBuilderInt256::default()),
+                Box::<SolidityArrayBuilderInt256>::default(),
             ),
             DynSolType::Uint(64) => (
                 Field::new(&param.name, DataType::UInt64, false),
-                Box::new(SolidityArrayBuilderUInt64::default()),
+                Box::<SolidityArrayBuilderUInt64>::default(),
             ),
             DynSolType::Uint(128) => (
                 Field::new(&param.name, DataType::Utf8, false),
-                Box::new(SolidityArrayBuilderUInt128::default()),
+                Box::<SolidityArrayBuilderUInt128>::default(),
             ),
             DynSolType::Uint(256) => (
                 Field::new(&param.name, DataType::Utf8, false),
-                Box::new(SolidityArrayBuilderUInt256::default()),
+                Box::<SolidityArrayBuilderUInt256>::default(),
             ),
             DynSolType::Address => (
                 Field::new(
@@ -104,11 +104,11 @@ impl EthDecodedLogsToArrow {
                     DataType::FixedSizeBinary(Address::len_bytes() as i32),
                     false,
                 ),
-                Box::new(SolidityArrayBuilderAddress::default()),
+                Box::<SolidityArrayBuilderAddress>::default(),
             ),
             DynSolType::Bytes => (
                 Field::new(&param.name, DataType::Binary, false),
-                Box::new(SolidityArrayBuilderBytes::default()),
+                Box::<SolidityArrayBuilderBytes>::default(),
             ),
             _ => unimplemented!(
                 "Support for transcoding {typ} solidity type to arrow is not yet implemented",
@@ -347,7 +347,7 @@ struct SolidityArrayBuilderBytes {
 impl SolidityArrayBuilder for SolidityArrayBuilderBytes {
     fn append_value(&mut self, value: &DynSolValue) {
         match value {
-            DynSolValue::Bytes(v) => self.builder.append_value(&v),
+            DynSolValue::Bytes(v) => self.builder.append_value(v),
             _ => panic!("Unexpected value {value:?}"),
         }
     }

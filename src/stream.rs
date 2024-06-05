@@ -127,7 +127,7 @@ impl RawLogsStream {
                 let to = match to {
                     BlockNumber::Number(n) => n.as_u64(),
                     BlockNumber::Latest | BlockNumber::Safe | BlockNumber::Finalized => {
-                        let Some(to_block) = rpc_client.get_block(to.clone()).await? else {
+                        let Some(to_block) = rpc_client.get_block(*to).await? else {
                             Err(ProviderError::CustomError(format!(
                                 "Unable to resolve block: {to:?}"
                             )))?

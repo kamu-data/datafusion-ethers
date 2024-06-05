@@ -429,7 +429,7 @@ async fn test_sql_to_pushdown_filter() {
         "{:?}",
         filter
     );
-    assert!(matches!(filter.address, None), "{:?}", filter);
+    assert!(filter.address.is_none(), "{:?}", filter);
     assert!(
         matches!(filter.topics, [None, None, None, None]),
         "{:?}",
@@ -460,7 +460,7 @@ async fn test_sql_to_pushdown_filter() {
         "{:?}",
         filter
     );
-    assert!(matches!(filter.address, None), "{:?}", filter);
+    assert!(filter.address.is_none(), "{:?}", filter);
     assert!(
         matches!(filter.topics, [None, None, None, None]),
         "{:?}",

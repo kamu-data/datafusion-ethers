@@ -23,6 +23,12 @@ pub struct EthRawLogsToArrow {
     data: array::BinaryBuilder,
 }
 
+impl Default for EthRawLogsToArrow {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl EthRawLogsToArrow {
     pub fn new() -> Self {
         Self {
