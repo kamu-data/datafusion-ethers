@@ -1,69 +1,6 @@
-use indoc::indoc;
-use std::{path::PathBuf, sync::Arc};
-
-use alloy_core::hex::ToHexExt;
 use datafusion::{config::ConfigOptions, prelude::*};
-use ethers::{prelude::*, utils::AnvilInstance};
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-abigen!(
-    TestContract,
-    "tests/contracts/out/Contract.sol/Contract.json"
-);
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-async fn setup_chain_state() -> (AnvilInstance, Arc<Provider<impl JsonRpcClient>>) {
-    let anvil = ethers::core::utils::Anvil::new().spawn();
-    let rpc_client = Arc::new(Provider::<Http>::connect(&anvil.endpoint()).await);
-
-    let contracts_dir = PathBuf::from("tests/contracts");
-    let rpc_endpoint = anvil.endpoint();
-    let admin_address = anvil.addresses()[0];
-    let admin_key = anvil.keys()[0].to_bytes().encode_hex_with_prefix();
-
-    // Deploy 2 contracts
-    std::process::Command::new("forge")
-        .current_dir(&contracts_dir)
-        .args([
-            "script",
-            "script/Deploy.s.sol",
-            "--fork-url",
-            rpc_endpoint.as_str(),
-            "--private-key",
-            admin_key.as_str(),
-            "--broadcast",
-        ])
-        .status()
-        .expect("Failed to deploy contracts. Is foundry installed?");
-
-    let contract_1_address: Address = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
-        .parse()
-        .unwrap();
-    let contract_2_address: Address = "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512"
-        .parse()
-        .unwrap();
-
-    let contract_1 = TestContract::new(contract_1_address, rpc_client.clone());
-    let contract_2 = TestContract::new(contract_2_address, rpc_client.clone());
-
-    contract_1
-        .emit_logs()
-        .from(admin_address)
-        .send()
-        .await
-        .unwrap();
-
-    contract_2
-        .emit_logs()
-        .from(admin_address)
-        .send()
-        .await
-        .unwrap();
-
-    (anvil, rpc_client)
-}
+use indoc::indoc;
+use std::sync::Arc;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -77,7 +14,7 @@ async fn test_pushdown_common_cfg(
     expected_plan: &str,
     expected_data: &str,
 ) {
-    let (_anvil, rpc_client) = setup_chain_state().await;
+    let test_chain = super::chain::get_test_chain().await;
 
     // Turn off extra optimizations that create noise in prhysical plans
     let mut cfg = SessionConfig::new()
@@ -92,7 +29,9 @@ async fn test_pushdown_common_cfg(
 
     df_ctx.register_catalog(
         "eth",
-        Arc::new(datafusion_ethers::provider::EthCatalog::new(rpc_client)),
+        Arc::new(datafusion_ethers::provider::EthCatalog::new(
+            test_chain.rpc_client,
+        )),
     );
 
     let df = df_ctx.sql(sql).await.unwrap();
@@ -112,12 +51,14 @@ async fn test_pushdown_common_cfg(
 
 #[test_log::test(tokio::test)]
 async fn test_scan() {
-    let (_anvil, rpc_client) = setup_chain_state().await;
+    let test_chain = super::chain::get_test_chain().await;
 
     let df_ctx = SessionContext::new();
     df_ctx.register_catalog(
         "eth",
-        Arc::new(datafusion_ethers::provider::EthCatalog::new(rpc_client)),
+        Arc::new(datafusion_ethers::provider::EthCatalog::new(
+            test_chain.rpc_client,
+        )),
     );
 
     let df = df_ctx.sql("select * from eth.eth.logs").await.unwrap();
@@ -189,12 +130,14 @@ async fn test_scan() {
 
 #[test_log::test(tokio::test)]
 async fn test_project() {
-    let (_anvil, rpc_client) = setup_chain_state().await;
+    let test_chain = super::chain::get_test_chain().await;
 
     let df_ctx = SessionContext::new();
     df_ctx.register_catalog(
         "eth",
-        Arc::new(datafusion_ethers::provider::EthCatalog::new(rpc_client)),
+        Arc::new(datafusion_ethers::provider::EthCatalog::new(
+            test_chain.rpc_client,
+        )),
     );
 
     let df = df_ctx

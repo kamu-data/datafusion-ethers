@@ -17,4 +17,4 @@ lint:
 
 .PHONY: test
 test:
-	$(TEST_LOG_PARAMS) cargo test -- --nocapture --test-threads=1
+	$(TEST_LOG_PARAMS) cargo test

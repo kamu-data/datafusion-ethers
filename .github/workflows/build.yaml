@@ -66,6 +66,6 @@ jobs:
       - name: Build node
         run: cargo test ${{ env.CARGO_FLAGS }} --no-run
       - name: Run tests
-        run: cargo test ${{ env.CARGO_FLAGS }} -- --test-threads=1
+        run: cargo test ${{ env.CARGO_FLAGS }}
       - name: Check git diff
         run: git diff && git diff-index --quiet HEAD

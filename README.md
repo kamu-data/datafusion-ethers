@@ -148,9 +148,11 @@ from (
   - Decodes raw event data into JSON string
   - JSON can then be further processed using [`datafusion-functions-json`](https://github.com/datafusion-contrib/datafusion-functions-json) crate
 - Transcoders:
-  - `EthRawLogsToArrow` - convers raw log data into Arrow record batches
-  - `EthDecodedLogsToArrow` - convers decoded log data into Arrow record batches
+  - `EthRawLogsToArrow` - converts raw log data into Arrow record batches
+  - `EthDecodedLogsToArrow` - converts decoded log data into Arrow record batches
   - `EthRawAndDecodedLogsToArrow` - given raw log data and an event type and produces Arrow record batches with raw data columns and with decoded event columns as a nested struct
+- Utilities:
+  - `RawLogsStream` - implements efficient and resumable pagination of `eth_getLogs` using a provided filter
 
 ## Related Projects
 - [`kamu-cli`](https://github.com/kamu-data/kamu-cli) - verifiable data processing toolset that can ingest data from blockchains and provide it to smart contracts as a new-generation oracle.
