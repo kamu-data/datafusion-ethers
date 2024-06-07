@@ -121,7 +121,7 @@ async fn test_decoded_logs_to_record_batch() {
             r#"
             message arrow_schema {
               REQUIRED INT64 requestId (INTEGER(64,false));
-              REQUIRED FIXED_LEN_BYTE_ARRAY (20) consumerAddr;
+              REQUIRED BYTE_ARRAY consumerAddr;
               REQUIRED BYTE_ARRAY request;
             }
             "#
@@ -176,7 +176,7 @@ async fn test_raw_and_decoded_logs_to_record_batch() {
               REQUIRED BYTE_ARRAY data;
               REQUIRED group event {
                 REQUIRED INT64 requestId (INTEGER(64,false));
-                REQUIRED FIXED_LEN_BYTE_ARRAY (20) consumerAddr;
+                REQUIRED BYTE_ARRAY consumerAddr;
                 REQUIRED BYTE_ARRAY request;
               }
             }

@@ -1,6 +1,6 @@
 use alloy::dyn_abi::{DecodedEvent, DynSolEvent, DynSolType, DynSolValue, Specifier};
 use alloy::json_abi::{Event, EventParam};
-use alloy::primitives::{Address, Sign};
+use alloy::primitives::Sign;
 use alloy::rpc::types::eth::Log;
 use datafusion::arrow::array::{self, Array, ArrayBuilder, RecordBatch};
 use datafusion::arrow::datatypes::{DataType, Field, Schema, SchemaRef};
@@ -101,7 +101,9 @@ impl EthDecodedLogsToArrow {
             DynSolType::Address => (
                 Field::new(
                     &param.name,
-                    DataType::FixedSizeBinary(Address::len_bytes() as i32),
+                    // TODO: FIXME: Restore fixed-size after there's better support for it in engines
+                    // DataType::FixedSizeBinary(Address::len_bytes() as i32),
+                    DataType::Binary,
                     false,
                 ),
                 Box::<SolidityArrayBuilderAddress>::default(),
@@ -305,22 +307,15 @@ impl SolidityArrayBuilder for SolidityArrayBuilderUInt256 {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+#[derive(Default)]
 struct SolidityArrayBuilderAddress {
-    builder: array::FixedSizeBinaryBuilder,
-}
-
-impl Default for SolidityArrayBuilderAddress {
-    fn default() -> Self {
-        Self {
-            builder: array::FixedSizeBinaryBuilder::new(Address::len_bytes() as i32),
-        }
-    }
+    builder: array::BinaryBuilder,
 }
 
 impl SolidityArrayBuilder for SolidityArrayBuilderAddress {
     fn append_value(&mut self, value: &DynSolValue) {
         match value {
-            DynSolValue::Address(v) => self.builder.append_value(v.as_slice()).unwrap(),
+            DynSolValue::Address(v) => self.builder.append_value(v.as_slice()),
             _ => panic!("Unexpected value {value:?}"),
         }
     }
