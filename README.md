@@ -19,6 +19,10 @@ The crate also provides UDFs (a set of custom SQL functions) for ABI decoding.
 The crate is currently designed for embedding, but the goal is also to provide an application that supports [FlightSQL](https://arrow.apache.org/docs/format/FlightSql.html) protocol and streaming data queries.
 
 
+## Warning about crates.io release
+We have currently suspended publishing this crate to `crates.io` after migrating from `ethers` to `alloy`. This is because `alloy` team is not publishing their crate yet (see [alloy-rs/alloy#791](https://github.com/alloy-rs/alloy/issues/791)). Please use the `git` dependency for now.
+
+
 ## Quick Start
 Setup dependencies:
 ```toml
@@ -28,6 +32,7 @@ alloy = { git = "https://github.com/alloy-rs/alloy", branch = "main", features =
     "provider-ws",
 ] }
 datafusion = { version = "*" }
+datafusion-ethers = { git = "https://github.com/kamu-data/datafusion-ethers", branch = "master" }
 ```
 
 Initialize libraries and run queries:
