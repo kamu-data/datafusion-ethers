@@ -85,7 +85,7 @@ limit 5
 +--------------+------------------------------------------------------------------+----------------------+-------------------+------------------------------------------------------------------+-----------+------------------------------------------+------------------------------------------------------------------+------------------------------------------------------------------+------------------------------------------------------------------+--------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 ```
 
-> Note: the `block_time` column will only be populated if the node implementation supports it see [ethereum/execution-apis#295](https://github.com/ethereum/execution-apis/issues/295).
+> Note: the `block_time` column will only be populated if the node implementation supports it, see [ethereum/execution-apis#295](https://github.com/ethereum/execution-apis/issues/295).
 
 Get raw logs from a specific contract address:
 ```sql
