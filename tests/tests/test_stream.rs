@@ -1,7 +1,9 @@
+use alloy::{
+    providers::RootProvider,
+    rpc::types::eth::{BlockNumberOrTag, Filter},
+};
 use datafusion_ethers::stream::{StreamOptions, StreamState};
-use ethers::prelude::*;
 use futures::TryStreamExt as _;
-use std::sync::Arc;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -9,7 +11,7 @@ use std::sync::Arc;
 async fn test_stream_raw_logs() {
     let test_chain = super::chain::get_test_chain().await;
 
-    let assert_stream = |rpc_client: Arc<Provider<_>>,
+    let assert_stream = |rpc_client: RootProvider<_>,
                          filter: Filter,
                          options: StreamOptions,
                          resume_from_state: Option<StreamState>,
@@ -33,8 +35,8 @@ async fn test_stream_raw_logs() {
     assert_stream(
         test_chain.rpc_client.clone(),
         Filter::default()
-            .from_block(BlockNumber::Earliest)
-            .to_block(BlockNumber::Latest),
+            .from_block(BlockNumberOrTag::Earliest)
+            .to_block(BlockNumberOrTag::Latest),
         StreamOptions::default(),
         None,
         vec![(4, StreamState { last_seen_block: 4 })],
@@ -45,7 +47,7 @@ async fn test_stream_raw_logs() {
     assert_stream(
         test_chain.rpc_client.clone(),
         Filter::default()
-            .from_block(BlockNumber::Earliest)
+            .from_block(BlockNumberOrTag::Earliest)
             .to_block(3),
         StreamOptions::default(),
         None,
@@ -67,8 +69,8 @@ async fn test_stream_raw_logs() {
     assert_stream(
         test_chain.rpc_client.clone(),
         Filter::default()
-            .from_block(BlockNumber::Earliest)
-            .to_block(BlockNumber::Latest),
+            .from_block(BlockNumberOrTag::Earliest)
+            .to_block(BlockNumberOrTag::Latest),
         StreamOptions { block_stride: 1 },
         None,
         vec![
@@ -85,8 +87,8 @@ async fn test_stream_raw_logs() {
     assert_stream(
         test_chain.rpc_client.clone(),
         Filter::default()
-            .from_block(BlockNumber::Earliest)
-            .to_block(BlockNumber::Latest),
+            .from_block(BlockNumberOrTag::Earliest)
+            .to_block(BlockNumberOrTag::Latest),
         StreamOptions { block_stride: 1 },
         Some(StreamState { last_seen_block: 3 }),
         vec![(2, StreamState { last_seen_block: 4 })],

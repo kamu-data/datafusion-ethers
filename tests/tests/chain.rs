@@ -1,19 +1,35 @@
 use std::{path::PathBuf, sync::Arc};
 
-use alloy_core::hex::ToHexExt;
-use ethers::{prelude::*, utils::AnvilInstance};
+use alloy::hex::ToHexExt;
+use alloy::sol;
+use alloy::{
+    node_bindings::{Anvil, AnvilInstance},
+    primitives::Address,
+    providers::{ProviderBuilder, RootProvider},
+    transports::BoxTransport,
+};
 use tokio::sync::{Mutex, MutexGuard};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-abigen!(
-    TestContract,
-    "tests/contracts/out/Contract.sol/Contract.json"
+sol!(
+    #[sol(rpc)]
+    contract Contract {
+        event Foo(address indexed addr, uint64 indexed id);
+        event Bar(address indexed addr, string str);
+
+        constructor() {}
+
+        function emitLogs() public {
+            emit Foo(msg.sender, 123);
+            emit Bar(address(this), "a-bar");
+        }
+    }
 );
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-type StateT = Option<(Arc<AnvilInstance>, Arc<Provider<Http>>)>;
+type StateT = Option<(Arc<AnvilInstance>, RootProvider<BoxTransport>)>;
 
 static TEST_CHAIN_STATE: Mutex<StateT> = Mutex::const_new(None);
 
@@ -21,8 +37,8 @@ static TEST_CHAIN_STATE: Mutex<StateT> = Mutex::const_new(None);
 
 pub struct TestChain<'a> {
     pub anvil: Arc<AnvilInstance>,
-    pub rpc_client: Arc<Provider<Http>>,
-    // Anvil does not like concurrent access so we have to serialize
+    pub rpc_client: RootProvider<BoxTransport>,
+    // Anvil does not like concurrent access so we serialize
     // all tests that are accessing it
     #[allow(dead_code)]
     guard: MutexGuard<'a, StateT>,
@@ -34,8 +50,11 @@ pub async fn get_test_chain() -> TestChain<'static> {
     let mut state_guard = TEST_CHAIN_STATE.lock().await;
 
     if state_guard.is_none() {
-        let anvil = ethers::core::utils::Anvil::new().spawn();
-        let rpc_client = Arc::new(Provider::<Http>::connect(&anvil.endpoint()).await);
+        let anvil = Anvil::new().spawn();
+        let rpc_client = ProviderBuilder::new()
+            .on_builtin(&anvil.endpoint())
+            .await
+            .unwrap();
 
         let contracts_dir = PathBuf::from("tests/contracts");
         let rpc_endpoint = anvil.endpoint();
@@ -64,20 +83,26 @@ pub async fn get_test_chain() -> TestChain<'static> {
             .parse()
             .unwrap();
 
-        let contract_1 = TestContract::new(contract_1_address, rpc_client.clone());
-        let contract_2 = TestContract::new(contract_2_address, rpc_client.clone());
+        let contract_1 = Contract::new(contract_1_address, rpc_client.clone());
+        let contract_2 = Contract::new(contract_2_address, rpc_client.clone());
 
         contract_1
-            .emit_logs()
+            .emitLogs()
             .from(admin_address)
             .send()
+            .await
+            .unwrap()
+            .watch()
             .await
             .unwrap();
 
         contract_2
-            .emit_logs()
+            .emitLogs()
             .from(admin_address)
             .send()
+            .await
+            .unwrap()
+            .watch()
             .await
             .unwrap();
 

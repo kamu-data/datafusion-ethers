@@ -8,18 +8,11 @@ workspace-default-features = "deny"
 # Avoid adding dependencies to this list as this slows down compilation.
 # Find another ways to avoid duplication.
 skip-tree = [
-    # TODO: Transition from deprecated/unmaintained ethers to alloy
-    { name = "base64" },
     { name = "bitflags" },
     { name = "heck" },
-    { name = "pbkdf2" },
-    { name = "regex-automata" },
-    { name = "regex-syntax" },
-    { name = "ring" },
-    { name = "send_wrapper" },
-    { name = "toml_edit" },
-    { name = "uuid" },
-    { name = "winnow" },
+    { name = "http" },
+    { name = "syn" },
+    { name = "windows-sys" },
 ]
 deny = [{ name = "openssl" }]
 
@@ -55,7 +48,7 @@ license-files = [{ path = "LICENSE", hash = 0xbd0eed23 }]
 [sources]
 unknown-git = "deny"
 unknown-registry = "deny"
-allow-org = { github = ["kamu-data"] }
+allow-org = { github = ["kamu-data", "alloy-rs"] }
 
 
 [advisories]

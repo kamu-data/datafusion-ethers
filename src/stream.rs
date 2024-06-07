@@ -1,10 +1,12 @@
-use std::sync::Arc;
-
-use ethers::prelude::*;
+use alloy::{
+    providers::{Provider, RootProvider},
+    rpc::types::eth::{BlockNumberOrTag, BlockTransactionsKind, Filter, FilterBlockOption, Log},
+    transports::{BoxTransport, RpcError, TransportErrorKind},
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct StreamOptions {
     /// Number of blocks to scan in one query. This should be small, as many
     /// RPC providers impose limits on this parameter
@@ -41,12 +43,12 @@ pub struct RawLogsStream;
 impl RawLogsStream {
     // TODO: Re-org detection and handling
     /// Streams batches of raw logs efficient and resumable pagination over `eth_getLogs` RPC endpoint,
-    pub fn paginate<P: JsonRpcClient>(
-        rpc_client: Arc<Provider<P>>,
+    pub fn paginate(
+        rpc_client: RootProvider<BoxTransport>,
         mut filter: Filter,
         options: StreamOptions,
         resume_from_state: Option<StreamState>,
-    ) -> impl futures::Stream<Item = Result<StreamBatch, ProviderError>> {
+    ) -> impl futures::Stream<Item = Result<StreamBatch, RpcError<TransportErrorKind>>> {
         async_stream::try_stream! {
             // Determine query's full block range, resolving symbolic block aliases like
             // 'latest' and 'finalized' to block numbers
@@ -106,41 +108,44 @@ impl RawLogsStream {
         }
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
-
-    pub async fn filter_to_block_range<P: JsonRpcClient>(
-        rpc_client: &Arc<Provider<P>>,
+    pub async fn filter_to_block_range(
+        rpc_client: &RootProvider<BoxTransport>,
         block_option: &FilterBlockOption,
-    ) -> Result<(u64, u64), ProviderError> {
+    ) -> Result<(u64, u64), RpcError<TransportErrorKind>> {
         match block_option {
             FilterBlockOption::Range {
                 from_block: Some(from),
                 to_block: Some(to),
             } => {
                 let from = match from {
-                    BlockNumber::Earliest => 0,
-                    BlockNumber::Number(n) => n.as_u64(),
-                    _ => Err(ProviderError::CustomError(format!(
+                    BlockNumberOrTag::Earliest => 0,
+                    BlockNumberOrTag::Number(n) => *n,
+                    _ => Err(RpcError::local_usage_str(&format!(
                         "Invalid range: {block_option:?}"
                     )))?,
                 };
                 let to = match to {
-                    BlockNumber::Number(n) => n.as_u64(),
-                    BlockNumber::Latest | BlockNumber::Safe | BlockNumber::Finalized => {
-                        let Some(to_block) = rpc_client.get_block(*to).await? else {
-                            Err(ProviderError::CustomError(format!(
+                    BlockNumberOrTag::Number(n) => *n,
+                    BlockNumberOrTag::Latest
+                    | BlockNumberOrTag::Safe
+                    | BlockNumberOrTag::Finalized => {
+                        let Some(to_block) = rpc_client
+                            .get_block((*to).into(), BlockTransactionsKind::Hashes)
+                            .await?
+                        else {
+                            Err(RpcError::local_usage_str(&format!(
                                 "Unable to resolve block: {to:?}"
                             )))?
                         };
-                        to_block.number.unwrap().as_u64()
+                        to_block.header.number.unwrap()
                     }
-                    _ => Err(ProviderError::CustomError(format!(
+                    _ => Err(RpcError::local_usage_str(&format!(
                         "Invalid range: {block_option:?}"
                     )))?,
                 };
                 Ok((from, to))
             }
-            FilterBlockOption::Range { .. } => Err(ProviderError::CustomError(format!(
+            FilterBlockOption::Range { .. } => Err(RpcError::local_usage_str(&format!(
                 "Invalid range: {block_option:?}"
             )))?,
             FilterBlockOption::AtBlockHash(_) => {
@@ -149,3 +154,5 @@ impl RawLogsStream {
         }
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////

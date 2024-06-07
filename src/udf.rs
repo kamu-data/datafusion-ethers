@@ -1,10 +1,10 @@
 use std::any::Any;
 use std::sync::Arc;
 
-use alloy_core::dyn_abi::{DecodedEvent, DynSolValue, EventExt as _};
-use alloy_core::hex::ToHexExt;
-use alloy_core::json_abi::Event;
-use alloy_core::primitives::B256;
+use alloy::dyn_abi::{DecodedEvent, DynSolValue, EventExt as _};
+use alloy::hex::ToHexExt;
+use alloy::json_abi::Event;
+use alloy::primitives::B256;
 use datafusion::arrow::array::{self, Array as _};
 use datafusion::error::DataFusionError;
 use datafusion::execution::FunctionRegistry;

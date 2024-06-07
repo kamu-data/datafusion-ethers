@@ -1,6 +1,6 @@
+use alloy::rpc::types::eth::Log;
 use datafusion::arrow::array::{self, ArrayBuilder};
-use datafusion::arrow::datatypes::{DataType, Field, Schema, SchemaRef};
-use ethers::prelude::*;
+use datafusion::arrow::datatypes::{DataType, Field, Schema, SchemaRef, TimeUnit};
 use std::sync::Arc;
 
 use super::{AppendError, Transcoder};
@@ -12,6 +12,7 @@ pub struct EthRawLogsToArrow {
     schema: SchemaRef,
     block_number: array::UInt64Builder,
     block_hash: array::BinaryBuilder,
+    block_timestamp: array::TimestampSecondBuilder,
     transaction_index: array::UInt64Builder,
     transaction_hash: array::BinaryBuilder,
     log_index: array::UInt64Builder,
@@ -31,10 +32,18 @@ impl Default for EthRawLogsToArrow {
 
 impl EthRawLogsToArrow {
     pub fn new() -> Self {
+        let utc: Arc<str> = Arc::from("UTC");
         Self {
             schema: Arc::new(Schema::new(vec![
                 Field::new("block_number", DataType::UInt64, false),
                 Field::new("block_hash", DataType::Binary, false),
+                // TODO: Remove nullable once most providers support this field
+                // See: https://github.com/ethereum/execution-apis/issues/295
+                Field::new(
+                    "block_timestamp",
+                    DataType::Timestamp(TimeUnit::Second, Some(utc.clone())),
+                    true,
+                ),
                 Field::new("transaction_index", DataType::UInt64, false),
                 Field::new("transaction_hash", DataType::Binary, false),
                 Field::new("log_index", DataType::UInt64, false),
@@ -47,6 +56,7 @@ impl EthRawLogsToArrow {
             ])),
             block_number: array::UInt64Builder::new(),
             block_hash: array::BinaryBuilder::new(),
+            block_timestamp: array::TimestampSecondBuilder::new().with_timezone(utc),
             transaction_index: array::UInt64Builder::new(),
             transaction_hash: array::BinaryBuilder::new(),
             log_index: array::UInt64Builder::new(),
@@ -68,28 +78,24 @@ impl Transcoder for EthRawLogsToArrow {
     #[allow(clippy::get_first)]
     fn append(&mut self, logs: &[Log]) -> Result<(), AppendError> {
         for log in logs {
-            self.block_number
-                .append_value(log.block_number.unwrap().as_u64());
-            self.block_hash
-                .append_value(log.block_hash.unwrap().as_bytes());
+            self.block_number.append_value(log.block_number.unwrap());
+            self.block_hash.append_value(log.block_hash.unwrap());
+            self.block_timestamp
+                .append_option(log.block_timestamp.map(|t| t as i64));
             self.transaction_index
-                .append_value(log.transaction_index.unwrap().as_u64());
+                .append_value(log.transaction_index.unwrap());
             self.transaction_hash
-                .append_value(log.transaction_hash.unwrap().as_bytes());
-            self.log_index.append_value(log.log_index.unwrap().as_u64());
-            self.address.append_value(log.address.as_bytes());
+                .append_value(log.transaction_hash.unwrap());
+            self.log_index.append_value(log.log_index.unwrap());
+            self.address.append_value(log.address().as_slice());
 
-            assert!(log.topics.len() <= 4);
-            self.topic0
-                .append_option(log.topics.get(0).map(|v| v.as_bytes()));
-            self.topic1
-                .append_option(log.topics.get(1).map(|v| v.as_bytes()));
-            self.topic2
-                .append_option(log.topics.get(2).map(|v| v.as_bytes()));
-            self.topic3
-                .append_option(log.topics.get(3).map(|v| v.as_bytes()));
+            assert!(log.topics().len() <= 4);
+            self.topic0.append_option(log.topics().get(0));
+            self.topic1.append_option(log.topics().get(1));
+            self.topic2.append_option(log.topics().get(2));
+            self.topic3.append_option(log.topics().get(3));
 
-            self.data.append_value(&log.data);
+            self.data.append_value(&log.data().data);
         }
 
         Ok(())
@@ -105,6 +111,7 @@ impl Transcoder for EthRawLogsToArrow {
             vec![
                 Arc::new(self.block_number.finish()),
                 Arc::new(self.block_hash.finish()),
+                Arc::new(self.block_timestamp.finish()),
                 Arc::new(self.transaction_index.finish()),
                 Arc::new(self.transaction_hash.finish()),
                 Arc::new(self.log_index.finish()),

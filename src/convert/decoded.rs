@@ -1,9 +1,9 @@
-use alloy_core::dyn_abi::{DecodedEvent, DynSolEvent, DynSolType, DynSolValue, Specifier};
-use alloy_core::json_abi::{Event, EventParam};
-use alloy_core::primitives::{Address, Sign, B256};
+use alloy::dyn_abi::{DecodedEvent, DynSolEvent, DynSolType, DynSolValue, Specifier};
+use alloy::json_abi::{Event, EventParam};
+use alloy::primitives::{Address, Sign};
+use alloy::rpc::types::eth::Log;
 use datafusion::arrow::array::{self, Array, ArrayBuilder, RecordBatch};
 use datafusion::arrow::datatypes::{DataType, Field, Schema, SchemaRef};
-use ethers::prelude::*;
 use std::sync::Arc;
 
 use super::{AppendError, Transcoder};
@@ -49,8 +49,8 @@ impl EthDecodedLogsToArrow {
         }
     }
 
-    pub fn new_from_signature(signature: &str) -> Result<Self, alloy_core::dyn_abi::parser::Error> {
-        let event_type = alloy_core::json_abi::Event::parse(signature)?;
+    pub fn new_from_signature(signature: &str) -> Result<Self, alloy::dyn_abi::parser::Error> {
+        let event_type = alloy::json_abi::Event::parse(signature)?;
         Ok(Self::new(&event_type))
     }
 
@@ -124,12 +124,7 @@ impl Transcoder for EthDecodedLogsToArrow {
 
     fn append(&mut self, logs: &[Log]) -> Result<(), AppendError> {
         for log in logs {
-            let decoded = self.event_decoder.decode_log_parts(
-                log.topics.iter().map(|t| B256::new(t.0)),
-                &log.data,
-                true,
-            )?;
-
+            let decoded = self.event_decoder.decode_log(log.data(), true)?;
             self.push_decoded(&decoded);
         }
         Ok(())

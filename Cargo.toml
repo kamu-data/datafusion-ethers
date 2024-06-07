@@ -11,30 +11,37 @@ license = "Apache-2.0"
 
 [dependencies]
 async-stream = { version = "0.3" }
-async-trait = "0.1"
-alloy-core = { version = "0.7", features = [
-    "std",
+async-trait = { version = "0.1" }
+alloy = { version = "0.1", git = "https://github.com/alloy-rs/alloy", branch = "main", default-features = false, features = [
     "dyn-abi",
     "json-abi",
-    "sol-types",
+    "provider-http",
+    "provider-ws",
+    "rpc-types-eth",
 ] }
-datafusion = "38.0.0"
-ethers = { version = "2", default-features = false, features = [
-    "ws",
-    "rustls",
-] }
+datafusion = { version = "38", default-features = false }
 futures = { version = "0.3" }
 serde_json = { version = "1" }
-tokio = "1.37.0"
-thiserror = "1"
-tracing = "0.1.40"
-tracing-subscriber = "0.3.18"
+tokio = { version = "1.37.0", default-features = false }
+thiserror = { version = "1" }
+tracing = { version = "0.1.40", default-features = false }
+
 
 [dev-dependencies]
+alloy = { version = "0.1", git = "https://github.com/alloy-rs/alloy", branch = "main", default-features = false, features = [
+    "node-bindings",
+    "sol-types",
+    "contract",
+] }
+datafusion = { version = "38", default-features = false, features = [
+    "parquet",
+] }
 datafusion-functions-json = { version = "0.1" }
 indoc = { version = "2" }
 pretty_assertions = { version = "1" }
 test-log = { version = "0.2", features = ["trace"] }
+tracing-subscriber = { version = "0.3" }
+
 
 [patch.crates-io]
 # TODO: https://github.com/datafusion-contrib/datafusion-functions-json/issues/12

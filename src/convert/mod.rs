@@ -2,6 +2,7 @@ mod decoded;
 mod hybrid;
 mod raw;
 
+use alloy::rpc::types::eth::{Filter, Log};
 use datafusion::arrow::array::RecordBatch;
 use datafusion::arrow::datatypes::SchemaRef;
 pub use decoded::*;
@@ -11,7 +12,6 @@ pub use raw::*;
 use datafusion::error::Result as DfResult;
 use datafusion::execution::context::SessionContext;
 use datafusion::physical_plan::ExecutionPlan;
-use ethers::prelude::*;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -28,7 +28,7 @@ pub trait Transcoder {
 #[derive(Debug, thiserror::Error)]
 pub enum AppendError {
     #[error(transparent)]
-    EventDecodingError(#[from] alloy_core::dyn_abi::Error),
+    EventDecodingError(#[from] alloy::dyn_abi::Error),
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -43,7 +43,7 @@ pub async fn sql_to_pushdown_filter(ctx: &SessionContext, sql: &str) -> DfResult
 fn sql_to_pushdown_filter_rec(plan: &dyn ExecutionPlan) -> Option<Filter> {
     let mut found = plan
         .as_any()
-        .downcast_ref::<super::provider::EthGetLogs<Http>>()
+        .downcast_ref::<super::provider::EthGetLogs>()
         .map(|scan| scan.filter().clone());
 
     // Traverse all the children too to make sure there is only one scan in this query (e.g. no UNIONs)

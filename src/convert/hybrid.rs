@@ -1,7 +1,7 @@
-use alloy_core::json_abi::Event;
+use alloy::json_abi::Event;
+use alloy::rpc::types::eth::Log;
 use datafusion::arrow::array::RecordBatch;
 use datafusion::arrow::datatypes::{DataType, Field, SchemaBuilder, SchemaRef};
-use ethers::prelude::*;
 use std::sync::Arc;
 
 use super::{AppendError, Transcoder};
@@ -34,8 +34,8 @@ impl EthRawAndDecodedLogsToArrow {
         }
     }
 
-    pub fn new_from_signature(signature: &str) -> Result<Self, alloy_core::dyn_abi::parser::Error> {
-        let event_type = alloy_core::json_abi::Event::parse(signature)?;
+    pub fn new_from_signature(signature: &str) -> Result<Self, alloy::dyn_abi::parser::Error> {
+        let event_type = alloy::json_abi::Event::parse(signature)?;
         Ok(Self::new(&event_type))
     }
 }
