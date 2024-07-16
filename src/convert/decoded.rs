@@ -126,7 +126,7 @@ impl Transcoder for EthDecodedLogsToArrow {
 
     fn append(&mut self, logs: &[Log]) -> Result<(), AppendError> {
         for log in logs {
-            let decoded = self.event_decoder.decode_log(log.data(), true)?;
+            let decoded = self.event_decoder.decode_log_data(log.data(), true)?;
             self.push_decoded(&decoded);
         }
         Ok(())
