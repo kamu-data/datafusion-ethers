@@ -11,6 +11,7 @@ skip-tree = [
     { name = "bitflags" },
     { name = "heck" },
     { name = "http" },
+    { name = "itertools" },
     { name = "syn" },
     { name = "windows-sys" },
 ]
@@ -28,7 +29,6 @@ allow = [
     "MPL-2.0",
     "0BSD",
     "OpenSSL",
-    "Unicode-3.0",
     "Unlicense",
     "Zlib",
 ]
@@ -48,7 +48,7 @@ license-files = [{ path = "LICENSE", hash = 0xbd0eed23 }]
 [sources]
 unknown-git = "deny"
 unknown-registry = "deny"
-allow-org = { github = ["kamu-data", "apache", "alloy-rs"] }
+allow-org = { github = ["datafusion-contrib"] }
 
 
 [advisories]

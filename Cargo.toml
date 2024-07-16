@@ -1,6 +1,6 @@
 [package]
 name = "datafusion-ethers"
-version = "39.0.0"
+version = "40.0.0"
 edition = "2021"
 repository = "https://github.com/kamu-data/datafusion-ethers"
 description = "Ethereum RPC bridge for Apache Datafusion"
@@ -12,7 +12,7 @@ license = "Apache-2.0"
 [dependencies]
 async-stream = { version = "0.3" }
 async-trait = { version = "0.1" }
-alloy = { version = "0.1", git = "https://github.com/alloy-rs/alloy", rev = "a81f9e1e80e677a8f78b592657ffba607a0098b9", default-features = false, features = [
+alloy = { version = "0.1", default-features = false, features = [
     "std",
     "dyn-abi",
     "json-abi",
@@ -20,25 +20,24 @@ alloy = { version = "0.1", git = "https://github.com/alloy-rs/alloy", rev = "a81
     "provider-ws",
     "rpc-types-eth",
 ] }
-datafusion = { version = "39", default-features = false }
+datafusion = { version = "40", default-features = false }
 futures = { version = "0.3" }
 serde_json = { version = "1" }
-tokio = { version = "1.37.0", default-features = false }
+tokio = { version = "1", default-features = false }
 thiserror = { version = "1" }
-tracing = { version = "0.1.40", default-features = false }
+tracing = { version = "0.1", default-features = false }
 
 
 [dev-dependencies]
-alloy = { version = "0.1", git = "https://github.com/alloy-rs/alloy", rev = "a81f9e1e80e677a8f78b592657ffba607a0098b9", default-features = false, features = [
+alloy = { version = "0.1", default-features = false, features = [
     "node-bindings",
     "sol-types",
     "contract",
 ] }
-datafusion = { version = "39", default-features = false, features = [
+datafusion = { version = "40", default-features = false, features = [
     "parquet",
 ] }
-# TODO: https://github.com/datafusion-contrib/datafusion-functions-json/issues/12
-datafusion-functions-json = { version = "0.1", git = 'https://github.com/kamu-data/datafusion-functions-json.git', branch = "datafusion-39" }
+datafusion-functions-json = { version = "0.2", git = "https://github.com/datafusion-contrib/datafusion-functions-json", rev = "efe0491d2e5048611cbbf6f9ab73f89d93bc762f" }
 indoc = { version = "2" }
 pretty_assertions = { version = "1" }
 test-log = { version = "0.2", features = ["trace"] }
