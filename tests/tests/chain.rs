@@ -35,12 +35,12 @@ static TEST_CHAIN_STATE: Mutex<StateT> = Mutex::const_new(None);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+#[allow(dead_code)]
 pub struct TestChain<'a> {
     pub anvil: Arc<AnvilInstance>,
     pub rpc_client: RootProvider<BoxTransport>,
     // Anvil does not like concurrent access so we serialize
     // all tests that are accessing it
-    #[allow(dead_code)]
     guard: MutexGuard<'a, StateT>,
 }
 
