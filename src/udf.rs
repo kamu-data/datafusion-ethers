@@ -147,7 +147,7 @@ impl ScalarUDFImpl for UdfEthDecodeEvent {
                 .decode_log_parts(topics, data, true)
                 .map_err(|e| DataFusionError::External(e.into()))?;
 
-            builder.append_value(&event_to_json(&event, &decoded).to_string());
+            builder.append_value(event_to_json(&event, &decoded).to_string());
         }
 
         Ok(ColumnarValue::Array(Arc::new(builder.finish())))

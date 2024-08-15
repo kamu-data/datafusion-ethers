@@ -9,6 +9,7 @@ workspace-default-features = "deny"
 # Find another ways to avoid duplication.
 skip-tree = [
     { name = "bitflags" },
+    { name = "dashmap" },
     { name = "heck" },
     { name = "http" },
     { name = "itertools" },
