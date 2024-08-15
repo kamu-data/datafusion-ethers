@@ -2,8 +2,7 @@ use alloy::primitives::{Address, B256};
 use alloy::providers::RootProvider;
 use alloy::rpc::types::eth::{BlockNumberOrTag, Filter, FilterBlockOption};
 use alloy::transports::BoxTransport;
-use datafusion::catalog::schema::SchemaProvider;
-use datafusion::catalog::CatalogProvider;
+use datafusion::catalog::{CatalogProvider, SchemaProvider, Session};
 use datafusion::error::{DataFusionError, Result as DfResult};
 use datafusion::execution::TaskContext;
 use datafusion::logical_expr::BinaryExpr;
@@ -13,7 +12,6 @@ use datafusion::physical_plan::{DisplayAs, DisplayFormatType, PlanProperties};
 use datafusion::{
     arrow::{array::RecordBatch, datatypes::SchemaRef},
     datasource::{TableProvider, TableType},
-    execution::context::SessionState,
     logical_expr::{Operator, TableProviderFilterPushDown},
     physical_plan::ExecutionPlan,
     prelude::*,
@@ -298,7 +296,7 @@ impl TableProvider for EthLogsTable {
 
     async fn scan(
         &self,
-        state: &SessionState,
+        state: &dyn Session,
         mut projection: Option<&Vec<usize>>,
         filters: &[Expr],
         limit: Option<usize>,
