@@ -238,7 +238,7 @@ impl ScalarUDFImpl for UdfEthTryDecodeEvent {
             let data = c_data.value(i);
 
             match event.decode_log_parts(topics, data, true) {
-                Ok(decoded) => builder.append_value(&event_to_json(&event, &decoded).to_string()),
+                Ok(decoded) => builder.append_value(event_to_json(&event, &decoded).to_string()),
                 Err(_) => builder.append_null(),
             }
         }
