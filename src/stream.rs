@@ -137,7 +137,7 @@ impl RawLogsStream {
                                 "Unable to resolve block: {to:?}"
                             )))?
                         };
-                        to_block.header.number.unwrap()
+                        to_block.header.number
                     }
                     _ => Err(RpcError::local_usage_str(&format!(
                         "Invalid range: {block_option:?}"

@@ -61,8 +61,13 @@ pub async fn get_test_chain() -> TestChain<'static> {
         let admin_address = anvil.addresses()[0];
         let admin_key = anvil.keys()[0].to_bytes().encode_hex_with_prefix();
 
+        assert!(
+            contracts_dir.join("node_modules").exists(),
+            "test/contracts node modules were not initialized"
+        );
+
         // Deploy 2 contracts
-        std::process::Command::new("forge")
+        let status = std::process::Command::new("forge")
             .current_dir(&contracts_dir)
             .args([
                 "script",
@@ -75,6 +80,8 @@ pub async fn get_test_chain() -> TestChain<'static> {
             ])
             .status()
             .expect("Failed to deploy contracts. Is foundry installed?");
+
+        assert!(status.success(), "Forge exited with status code {status}");
 
         let contract_1_address: Address = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
             .parse()

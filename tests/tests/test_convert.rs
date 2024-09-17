@@ -204,7 +204,6 @@ async fn test_raw_and_decoded_logs_to_record_batch() {
 #[test_log::test(tokio::test)]
 async fn test_udf_eth_decode_event() {
     let mut ctx = SessionContext::new();
-    datafusion_functions_json::register_all(&mut ctx).unwrap();
     datafusion_ethers::udf::register_all(&mut ctx).unwrap();
 
     let mut coder = datafusion_ethers::convert::EthRawLogsToArrow::new();
@@ -298,59 +297,6 @@ async fn test_udf_eth_decode_event() {
         ),
     )
     .await;
-
-    let df = ctx
-            .sql(
-                r#"
-                select
-                    json_get_str(event, 'name') as name,
-                    json_get_int(event, 'requestId') as request_id,
-                    decode(json_get_str(event, 'consumerAddr'), 'hex') as consumer_addr,
-                    decode(json_get_str(event, 'request'), 'hex') as request
-                from (
-                    select
-                        eth_decode_event(
-                            'SendRequest(uint64 indexed requestId, address indexed consumerAddr, bytes request)',
-                            topic0,
-                            topic1,
-                            topic2,
-                            topic3,
-                            data
-                        ) as event
-                    from logs
-                )
-                "#,
-            )
-            .await
-            .unwrap();
-
-    super::utils::assert_schema_eq(
-        df.schema(),
-        indoc!(
-            r#"
-            message arrow_schema {
-              OPTIONAL BYTE_ARRAY name (STRING);
-              OPTIONAL INT64 request_id;
-              OPTIONAL BYTE_ARRAY consumer_addr;
-              OPTIONAL BYTE_ARRAY request;
-            }
-            "#
-        ),
-    );
-
-    super::utils::assert_data_eq(
-        df,
-        indoc!(
-            r#"
-            +-------------+------------+------------------------------------------+----------+
-            | name        | request_id | consumer_addr                            | request  |
-            +-------------+------------+------------------------------------------+----------+
-            | SendRequest | 123        | aabbccddaabbccddaabbccddaabbccddaabbccdd | ff00bbaa |
-            +-------------+------------+------------------------------------------+----------+
-            "#
-        ),
-    )
-    .await;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -358,7 +304,6 @@ async fn test_udf_eth_decode_event() {
 #[test_log::test(tokio::test)]
 async fn test_udf_eth_event_selector() {
     let mut ctx = SessionContext::new();
-    datafusion_functions_json::register_all(&mut ctx).unwrap();
     datafusion_ethers::udf::register_all(&mut ctx).unwrap();
 
     let df = ctx

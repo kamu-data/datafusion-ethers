@@ -13,6 +13,8 @@ skip-tree = [
     { name = "heck" },
     { name = "http" },
     { name = "itertools" },
+    # See: https://github.com/hyperium/hyper-util/pull/144
+    { name = "tower" },
     { name = "syn" },
     { name = "windows-sys" },
 ]
@@ -54,4 +56,7 @@ allow-org = { github = ["datafusion-contrib"] }
 
 [advisories]
 yanked = "deny"
-ignore = []
+ignore = [
+    # lexical-core crate, no fix yet
+    "RUSTSEC-2023-0086",
+]

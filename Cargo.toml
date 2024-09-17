@@ -1,6 +1,6 @@
 [package]
 name = "datafusion-ethers"
-version = "41.0.0"
+version = "42.0.0"
 edition = "2021"
 repository = "https://github.com/kamu-data/datafusion-ethers"
 description = "Ethereum RPC bridge for Apache Datafusion"
@@ -12,7 +12,7 @@ license = "Apache-2.0"
 [dependencies]
 async-stream = { version = "0.3" }
 async-trait = { version = "0.1" }
-alloy = { version = "0.2", default-features = false, features = [
+alloy = { version = "0.3", default-features = false, features = [
     "std",
     "dyn-abi",
     "json-abi",
@@ -20,7 +20,7 @@ alloy = { version = "0.2", default-features = false, features = [
     "provider-ws",
     "rpc-types-eth",
 ] }
-datafusion = { version = "41", default-features = false }
+datafusion = { version = "42", default-features = false }
 futures = { version = "0.3" }
 serde_json = { version = "1" }
 tokio = { version = "1", default-features = false }
@@ -29,15 +29,14 @@ tracing = { version = "0.1", default-features = false }
 
 
 [dev-dependencies]
-alloy = { version = "0.2", default-features = false, features = [
+alloy = { version = "0.3", default-features = false, features = [
     "node-bindings",
     "sol-types",
     "contract",
 ] }
-datafusion = { version = "41", default-features = false, features = [
+datafusion = { version = "42", default-features = false, features = [
     "parquet",
 ] }
-datafusion-functions-json = { version = "0.41", default-features = false }
 indoc = { version = "2" }
 pretty_assertions = { version = "1" }
 test-log = { version = "0.2", features = ["trace"] }
@@ -45,4 +44,4 @@ tracing-subscriber = { version = "0.3" }
 
 
 [patch.crates-io]
-# datafusion-functions-json = { git = 'https://github.com/kamu-data/datafusion-functions-json.git', branch = "pin-jiter" }
+# datafusion = { git = 'https://github.com/apache/datafusion.git', rev = "7bd7747" }

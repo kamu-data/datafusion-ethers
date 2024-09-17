@@ -94,10 +94,11 @@ async fn test_scan() {
         df.logical_plan().display_indent().to_string(),
         indoc!(
             "
-            Projection: eth.eth.logs.block_number, eth.eth.logs.block_hash, eth.eth.logs.block_timestamp, eth.eth.logs.transaction_index, eth.eth.logs.transaction_hash, eth.eth.logs.log_index, eth.eth.logs.address, eth.eth.logs.topic0, eth.eth.logs.topic1, eth.eth.logs.topic2, eth.eth.logs.topic3, eth.eth.logs.data
+            Projection: *
               TableScan: eth.eth.logs
             "
-        ).trim()
+        )
+        .trim()
     );
 
     assert_eq!(
