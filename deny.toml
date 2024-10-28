@@ -10,12 +10,11 @@ workspace-default-features = "deny"
 skip-tree = [
     { name = "bitflags" },
     { name = "dashmap" },
+    { name = "hashbrown" },
     { name = "heck" },
-    { name = "http" },
     { name = "itertools" },
-    # See: https://github.com/hyperium/hyper-util/pull/144
-    { name = "tower" },
     { name = "syn" },
+    { name = "sync_wrapper" },
     { name = "windows-sys" },
 ]
 deny = [{ name = "openssl" }]
@@ -56,7 +55,4 @@ allow-org = { github = ["datafusion-contrib"] }
 
 [advisories]
 yanked = "deny"
-ignore = [
-    # lexical-core crate, no fix yet
-    "RUSTSEC-2023-0086",
-]
+ignore = []
