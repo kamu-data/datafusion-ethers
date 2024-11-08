@@ -15,6 +15,7 @@ skip-tree = [
     { name = "itertools" },
     { name = "syn" },
     { name = "sync_wrapper" },
+    { name = "thiserror" },    # TODO: Temporary for v2 migration
     { name = "windows-sys" },
 ]
 deny = [{ name = "openssl" }]
@@ -31,6 +32,7 @@ allow = [
     "MPL-2.0",
     "0BSD",
     "OpenSSL",
+    "Unicode-3.0",
     "Unlicense",
     "Zlib",
 ]
@@ -50,7 +52,7 @@ license-files = [{ path = "LICENSE", hash = 0xbd0eed23 }]
 [sources]
 unknown-git = "deny"
 unknown-registry = "deny"
-allow-org = { github = ["datafusion-contrib"] }
+allow-org = { github = [] }
 
 
 [advisories]

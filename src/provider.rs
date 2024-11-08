@@ -29,6 +29,7 @@ use crate::utils::*;
 // Catalog
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+#[derive(Debug)]
 pub struct EthCatalog {
     rpc_client: RootProvider<BoxTransport>,
 }
@@ -60,6 +61,7 @@ impl CatalogProvider for EthCatalog {
 // Schema
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+#[derive(Debug)]
 pub struct EthSchema {
     rpc_client: RootProvider<BoxTransport>,
 }
@@ -96,6 +98,7 @@ impl SchemaProvider for EthSchema {
 // Table: eth_logs
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+#[derive(Debug)]
 pub struct EthLogsTable {
     schema: SchemaRef,
     rpc_client: RootProvider<BoxTransport>,
