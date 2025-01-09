@@ -1652,7 +1652,7 @@ checksum = "c278dbd64860ed0bb5240fc1f4cb6aeea437153910aea69bcf7d5a8d6d0454f3"
 
 [[package]]
 name = "datafusion-ethers"
-version = "43.0.0"
+version = "44.0.0"
 dependencies = [
  "alloy",
  "async-stream",
