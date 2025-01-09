@@ -392,8 +392,9 @@ impl EthGetLogs {
             properties: PlanProperties::new(
                 EquivalenceProperties::new(projected_schema),
                 datafusion::physical_expr::Partitioning::UnknownPartitioning(1),
+                datafusion::physical_plan::execution_plan::EmissionType::Incremental,
                 // TODO: Change to Unbounded
-                datafusion::physical_plan::ExecutionMode::Bounded,
+                datafusion::physical_plan::execution_plan::Boundedness::Bounded,
             ),
         }
     }

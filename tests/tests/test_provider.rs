@@ -108,7 +108,7 @@ async fn test_scan() {
         .join("\n"),
         indoc!(
             "
-            EthGetLogs: projection=[*], filter=[block_number=[Some(Earliest), Some(Latest)]]
+            EthGetLogs: projection=[*], filter=[block_number=[Some(earliest), Some(latest)]]
             "
         )
         .trim()
@@ -187,7 +187,7 @@ async fn test_project() {
         indoc!(
             "
             ProjectionExec: expr=[transaction_hash@2 as transaction_hash, block_number@0 as block_number, transaction_index@1 as transaction_index]
-              EthGetLogs: projection=[block_number, transaction_index, transaction_hash], filter=[block_number=[Some(Earliest), Some(Latest)]]
+              EthGetLogs: projection=[block_number, transaction_index, transaction_hash], filter=[block_number=[Some(earliest), Some(latest)]]
             "
         )
         .trim()
@@ -224,7 +224,7 @@ async fn test_predicate_pushdown_address_single() {
         ),
         indoc!(
             r#"
-            EthGetLogs: projection=[*], filter=[block_number=[Some(Earliest), Some(Latest)], address=[0x5FbDB2315678afecb367f032d93F642f64180aa3]]
+            EthGetLogs: projection=[*], filter=[block_number=[Some(earliest), Some(latest)], address=[0x5FbDB2315678afecb367f032d93F642f64180aa3]]
             "#
         ),
         indoc!(
@@ -252,7 +252,7 @@ async fn test_predicate_pushdown_address_many() {
         ),
         indoc!(
             r#"
-            EthGetLogs: projection=[*], filter=[block_number=[Some(Earliest), Some(Latest)], address=[0x5FbDB2315678afecb367f032d93F642f64180aa3, 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512]]
+            EthGetLogs: projection=[*], filter=[block_number=[Some(earliest), Some(latest)], address=[0x5FbDB2315678afecb367f032d93F642f64180aa3, 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512]]
             "#
         ),
         indoc!(
@@ -284,7 +284,7 @@ async fn test_predicate_pushdown_block_number_binary() {
         ),
         indoc!(
             r#"
-            EthGetLogs: projection=[*], filter=[block_number=[Some(Number(4)), Some(Number(4))]]
+            EthGetLogs: projection=[*], filter=[block_number=[Some(0x4), Some(0x4)]]
             "#
         ),
         indoc!(
@@ -309,7 +309,7 @@ async fn test_predicate_pushdown_block_number_binary() {
         ),
         indoc!(
             r#"
-            EthGetLogs: projection=[*], filter=[block_number=[Some(Number(4)), Some(Latest)]]
+            EthGetLogs: projection=[*], filter=[block_number=[Some(0x4), Some(latest)]]
             "#
         ),
         indoc!(
@@ -334,7 +334,7 @@ async fn test_predicate_pushdown_block_number_binary() {
         ),
         indoc!(
             r#"
-            EthGetLogs: projection=[*], filter=[block_number=[Some(Earliest), Some(Number(2))]]
+            EthGetLogs: projection=[*], filter=[block_number=[Some(earliest), Some(0x2)]]
             "#
         ),
         indoc!(
@@ -357,7 +357,7 @@ async fn test_predicate_pushdown_block_number_binary() {
         ),
         indoc!(
             r#"
-            EthGetLogs: projection=[*], filter=[block_number=[Some(Earliest), Some(Number(3))]]
+            EthGetLogs: projection=[*], filter=[block_number=[Some(earliest), Some(0x3)]]
             "#
         ),
         indoc!(
@@ -387,7 +387,7 @@ async fn test_predicate_pushdown_block_number_range() {
         ),
         indoc!(
             r#"
-            EthGetLogs: projection=[*], filter=[block_number=[Some(Number(3)), Some(Number(4))]]
+            EthGetLogs: projection=[*], filter=[block_number=[Some(0x3), Some(0x4)]]
             "#
         ),
         indoc!(
@@ -414,7 +414,7 @@ async fn test_predicate_pushdown_block_number_range() {
         ),
         indoc!(
             r#"
-            EthGetLogs: projection=[*], filter=[block_number=[Some(Number(2)), Some(Number(4))]]
+            EthGetLogs: projection=[*], filter=[block_number=[Some(0x2), Some(0x4)]]
             "#
         ),
         indoc!(
@@ -450,7 +450,7 @@ async fn test_predicate_pushdown_block_number_range_with_config() {
         ),
         indoc!(
             r#"
-            EthGetLogs: projection=[*], filter=[block_number=[Some(Number(3)), Some(Number(4))]]
+            EthGetLogs: projection=[*], filter=[block_number=[Some(0x3), Some(0x4)]]
             "#
         ),
         indoc!(
@@ -482,7 +482,7 @@ async fn test_predicate_pushdown_topic_0_literal() {
         ),
         indoc!(
             r#"
-            EthGetLogs: projection=[*], filter=[block_number=[Some(Earliest), Some(Latest)], topic0=[0xda343a831f3915a0c465305afdd6b0f1c8a3c85635bb14272bf16b6de3664a51]]
+            EthGetLogs: projection=[*], filter=[block_number=[Some(earliest), Some(latest)], topic0=[0xda343a831f3915a0c465305afdd6b0f1c8a3c85635bb14272bf16b6de3664a51]]
             "#
         ),
         indoc!(
@@ -512,7 +512,7 @@ async fn test_predicate_pushdown_topic_0_selector() {
         ),
         indoc!(
             r#"
-            EthGetLogs: projection=[*], filter=[block_number=[Some(Earliest), Some(Latest)], topic0=[0xd9e93ef3ac030ca8925f1725575c96d8a49bd825c0843a168225c1bb686bba67]]
+            EthGetLogs: projection=[*], filter=[block_number=[Some(earliest), Some(latest)], topic0=[0xd9e93ef3ac030ca8925f1725575c96d8a49bd825c0843a168225c1bb686bba67]]
             "#
         ),
         indoc!(
@@ -547,7 +547,7 @@ async fn test_predicate_pushdown_topics_many_and() {
         ),
         indoc!(
             r#"
-            EthGetLogs: projection=[*], filter=[block_number=[Some(Earliest), Some(Latest)], topic0=[0xd9e93ef3ac030ca8925f1725575c96d8a49bd825c0843a168225c1bb686bba67], topic1=[0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266], topic2=[0x000000000000000000000000000000000000000000000000000000000000007b]]
+            EthGetLogs: projection=[*], filter=[block_number=[Some(earliest), Some(latest)], topic0=[0xd9e93ef3ac030ca8925f1725575c96d8a49bd825c0843a168225c1bb686bba67], topic1=[0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266], topic2=[0x000000000000000000000000000000000000000000000000000000000000007b]]
             "#
         ),
         indoc!(
@@ -586,7 +586,7 @@ async fn test_predicate_pushdown_topics_many_mixed() {
         ),
         indoc!(
             r#"
-            EthGetLogs: projection=[*], filter=[block_number=[Some(Earliest), Some(Latest)], topic0=[0xd9e93ef3ac030ca8925f1725575c96d8a49bd825c0843a168225c1bb686bba67, 0xda343a831f3915a0c465305afdd6b0f1c8a3c85635bb14272bf16b6de3664a51], topic1=[0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266], topic2=[0x000000000000000000000000000000000000000000000000000000000000007b]]
+            EthGetLogs: projection=[*], filter=[block_number=[Some(earliest), Some(latest)], topic0=[0xd9e93ef3ac030ca8925f1725575c96d8a49bd825c0843a168225c1bb686bba67, 0xda343a831f3915a0c465305afdd6b0f1c8a3c85635bb14272bf16b6de3664a51], topic1=[0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266], topic2=[0x000000000000000000000000000000000000000000000000000000000000007b]]
             "#
         ),
         indoc!(
@@ -617,7 +617,7 @@ async fn test_predicate_pushdown_limit() {
         indoc!(
             r#"
             GlobalLimitExec: skip=0, fetch=3
-              EthGetLogs: projection=[*], filter=[block_number=[Some(Earliest), Some(Latest)]], limit=3
+              EthGetLogs: projection=[*], filter=[block_number=[Some(earliest), Some(latest)]], limit=3
             "#
         ),
         indoc!(
@@ -649,7 +649,7 @@ async fn test_predicate_pushdown_unsupported() {
         indoc!(
             r#"
             FilterExec: log_index@5 = 1
-              EthGetLogs: projection=[*], filter=[block_number=[Some(Number(4)), Some(Number(4))]]
+              EthGetLogs: projection=[*], filter=[block_number=[Some(0x4), Some(0x4)]]
             "#
         ),
         indoc!(

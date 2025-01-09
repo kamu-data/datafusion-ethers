@@ -12,7 +12,7 @@ license = "Apache-2.0"
 [dependencies]
 async-stream = { version = "0.3" }
 async-trait = { version = "0.1" }
-alloy = { version = "0.6", default-features = false, features = [
+alloy = { version = "0.9", default-features = false, features = [
     "std",
     "dyn-abi",
     "json-abi",
@@ -20,7 +20,7 @@ alloy = { version = "0.6", default-features = false, features = [
     "provider-ws",
     "rpc-types-eth",
 ] }
-datafusion = { version = "43", default-features = false }
+datafusion = { version = "44", default-features = false }
 futures = { version = "0.3" }
 serde_json = { version = "1" }
 tokio = { version = "1", default-features = false }
@@ -29,12 +29,12 @@ tracing = { version = "0.1", default-features = false }
 
 
 [dev-dependencies]
-alloy = { version = "0.6", default-features = false, features = [
+alloy = { version = "0.9", default-features = false, features = [
     "node-bindings",
     "sol-types",
     "contract",
 ] }
-datafusion = { version = "43", default-features = false, features = [
+datafusion = { version = "44", default-features = false, features = [
     "parquet",
 ] }
 indoc = { version = "2" }
