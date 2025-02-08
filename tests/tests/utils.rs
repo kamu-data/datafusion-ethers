@@ -1,6 +1,7 @@
 use std::io::Write;
 
 use datafusion::common::DFSchema;
+use datafusion::parquet::arrow::ArrowSchemaConverter;
 use datafusion::parquet::schema::types::Type;
 use datafusion::prelude::*;
 use pretty_assertions::assert_eq;
@@ -8,7 +9,8 @@ use pretty_assertions::assert_eq;
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 pub fn assert_schema_eq(schema: &DFSchema, expected: &str) {
-    let parquet_schema = datafusion::parquet::arrow::arrow_to_parquet_schema(&schema.into())
+    let parquet_schema = ArrowSchemaConverter::new()
+        .convert(schema.as_arrow())
         .unwrap()
         .root_schema_ptr();
     let actual = format_schema_parquet(&parquet_schema);
