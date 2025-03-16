@@ -10,6 +10,7 @@ workspace-default-features = "deny"
 skip-tree = [
     { name = "bitflags" },
     { name = "dashmap" },
+    { name = "derive_more" },  # TODO: Upgrade alloy
     { name = "hashbrown" },
     { name = "heck" },
     { name = "itertools" },
@@ -57,4 +58,8 @@ allow-org = { github = [] }
 
 [advisories]
 yanked = "deny"
-ignore = []
+ignore = [
+    # paste (via datafusion-common)
+    # https://rustsec.org/advisories/RUSTSEC-2024-0436
+    "RUSTSEC-2024-0436",
+]
