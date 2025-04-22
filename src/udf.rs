@@ -8,6 +8,7 @@ use alloy::primitives::B256;
 use datafusion::arrow::array::{self, Array as _};
 use datafusion::error::DataFusionError;
 use datafusion::execution::FunctionRegistry;
+use datafusion::logical_expr::ScalarFunctionArgs;
 use datafusion::{
     arrow::datatypes::DataType,
     common::plan_err,
@@ -114,8 +115,11 @@ impl ScalarUDFImpl for UdfEthDecodeEvent {
         Ok(DataType::Utf8)
     }
 
-    fn invoke(&self, args: &[ColumnarValue]) -> datafusion::error::Result<ColumnarValue> {
-        let signature = match &args[0] {
+    fn invoke_with_args(
+        &self,
+        args: ScalarFunctionArgs,
+    ) -> datafusion::error::Result<ColumnarValue> {
+        let signature = match &args.args[0] {
             ColumnarValue::Scalar(ScalarValue::Utf8(Some(v))) => v,
             _ => return plan_err!("Event signature must be a Utf8 scalar"),
         };
@@ -123,7 +127,7 @@ impl ScalarUDFImpl for UdfEthDecodeEvent {
         let event = Event::parse(signature)
             .map_err(|e| datafusion::error::DataFusionError::External(e.into()))?;
 
-        let args = ColumnarValue::values_to_arrays(&args[1..])?;
+        let args = ColumnarValue::values_to_arrays(&args.args[1..])?;
         let c_topic0 = datafusion::common::cast::as_binary_array(&args[0])?;
         let c_topic1 = datafusion::common::cast::as_binary_array(&args[1])?;
         let c_topic2 = datafusion::common::cast::as_binary_array(&args[2])?;
@@ -208,8 +212,11 @@ impl ScalarUDFImpl for UdfEthTryDecodeEvent {
         Ok(DataType::Utf8)
     }
 
-    fn invoke(&self, args: &[ColumnarValue]) -> datafusion::error::Result<ColumnarValue> {
-        let signature = match &args[0] {
+    fn invoke_with_args(
+        &self,
+        args: ScalarFunctionArgs,
+    ) -> datafusion::error::Result<ColumnarValue> {
+        let signature = match &args.args[0] {
             ColumnarValue::Scalar(ScalarValue::Utf8(Some(v))) => v,
             _ => return plan_err!("Event signature must be a Utf8 scalar"),
         };
@@ -217,7 +224,7 @@ impl ScalarUDFImpl for UdfEthTryDecodeEvent {
         let event = Event::parse(signature)
             .map_err(|e| datafusion::error::DataFusionError::External(e.into()))?;
 
-        let args = ColumnarValue::values_to_arrays(&args[1..])?;
+        let args = ColumnarValue::values_to_arrays(&args.args[1..])?;
         let c_topic0 = datafusion::common::cast::as_binary_array(&args[0])?;
         let c_topic1 = datafusion::common::cast::as_binary_array(&args[1])?;
         let c_topic2 = datafusion::common::cast::as_binary_array(&args[2])?;
@@ -279,8 +286,11 @@ impl ScalarUDFImpl for UdfEthEventSelector {
         Ok(DataType::Binary)
     }
 
-    fn invoke(&self, args: &[ColumnarValue]) -> datafusion::error::Result<ColumnarValue> {
-        let signature = match &args[0] {
+    fn invoke_with_args(
+        &self,
+        args: ScalarFunctionArgs,
+    ) -> datafusion::error::Result<ColumnarValue> {
+        let signature = match &args.args[0] {
             ColumnarValue::Scalar(ScalarValue::Utf8(Some(v))) => v,
             _ => return plan_err!("Event signature must be a Utf8 scalar"),
         };

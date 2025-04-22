@@ -561,6 +561,62 @@ impl DisplayAs for EthGetLogs {
 
                 Ok(())
             }
+            DisplayFormatType::TreeRender => {
+                writeln!(f, "EthGetLogs")?;
+
+                if self.projection.is_none() {
+                    writeln!(f, "projection=[*]")?;
+                } else {
+                    let projection_str = self
+                        .projected_schema
+                        .fields
+                        .iter()
+                        .map(|f| f.name().as_str())
+                        .collect::<Vec<_>>()
+                        .join(", ");
+
+                    writeln!(f, "projection=[{}]", projection_str)?;
+                }
+
+                let mut filters = Vec::new();
+
+                match self.filter.block_option {
+                    FilterBlockOption::Range {
+                        from_block,
+                        to_block,
+                    } => filters.push(format!("block_number=[{:?}, {:?}]", from_block, to_block)),
+                    FilterBlockOption::AtBlockHash(h) => filters.push(format!("block_hash={}", h)),
+                }
+
+                if !self.filter.address.is_empty() {
+                    // Provide deterministic order
+                    let mut addrs: Vec<_> =
+                        self.filter.address.iter().map(|h| h.to_string()).collect();
+                    addrs.sort();
+                    filters.push(format!("address=[{}]", addrs.join(", ")));
+                }
+
+                for (i, t) in self
+                    .filter
+                    .topics
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, t)| !t.is_empty())
+                {
+                    // Provide deterministic order
+                    let mut topics: Vec<_> = t.iter().map(|h| h.to_string()).collect();
+                    topics.sort();
+                    filters.push(format!("topic{}=[{}]", i, topics.join(", ")));
+                }
+
+                writeln!(f, "filter=[{}]", filters.join(", "))?;
+
+                if let Some(limit) = self.limit {
+                    writeln!(f, "limit={}", limit)?;
+                }
+
+                Ok(())
+            }
         }
     }
 }

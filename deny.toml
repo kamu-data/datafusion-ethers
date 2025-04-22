@@ -10,13 +10,15 @@ workspace-default-features = "deny"
 skip-tree = [
     { name = "bitflags" },
     { name = "dashmap" },
-    { name = "derive_more" },  # TODO: Upgrade alloy
+    { name = "derive_more" },     # TODO: Upgrade alloy
     { name = "hashbrown" },
     { name = "heck" },
     { name = "itertools" },
     { name = "syn" },
     { name = "sync_wrapper" },
-    { name = "thiserror" },    # TODO: Temporary for v2 migration
+    { name = "thiserror" },       # TODO: Temporary for v2 migration
+    { name = "twox-hash" },       # TODO: Waiting upgrade via lz4_flex, arrow-ipc
+    { name = "windows-strings" },
     { name = "windows-sys" },
 ]
 deny = [{ name = "openssl" }]
@@ -32,16 +34,11 @@ allow = [
     "MIT",
     "MPL-2.0",
     "0BSD",
-    "OpenSSL",
     "Unicode-3.0",
     "Unlicense",
     "Zlib",
 ]
 private = { ignore = true }
-
-[[licenses.exceptions]]
-allow = ["Unicode-DFS-2016"]
-name = "unicode-ident"
 
 
 [[licenses.clarify]]
