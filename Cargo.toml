@@ -1,6 +1,6 @@
 [package]
 name = "datafusion-ethers"
-version = "47.0.0"
+version = "47.1.0"
 edition = "2021"
 repository = "https://github.com/kamu-data/datafusion-ethers"
 description = "Ethereum RPC bridge for Apache Datafusion"
@@ -12,7 +12,7 @@ license = "Apache-2.0"
 [dependencies]
 async-stream = { version = "0.3" }
 async-trait = { version = "0.1" }
-alloy = { version = "0.9", default-features = false, features = [
+alloy = { version = "1", default-features = false, features = [
     "std",
     "dyn-abi",
     "json-abi",
@@ -29,7 +29,7 @@ tracing = { version = "0.1", default-features = false }
 
 
 [dev-dependencies]
-alloy = { version = "0.9", default-features = false, features = [
+alloy = { version = "1", default-features = false, features = [
     "node-bindings",
     "sol-types",
     "contract",

@@ -8,16 +8,12 @@ workspace-default-features = "deny"
 # Avoid adding dependencies to this list as this slows down compilation.
 # Find another ways to avoid duplication.
 skip-tree = [
-    { name = "bitflags" },
-    { name = "dashmap" },
-    { name = "derive_more" },     # TODO: Upgrade alloy
     { name = "hashbrown" },
-    { name = "heck" },
-    { name = "itertools" },
-    { name = "syn" },
-    { name = "sync_wrapper" },
+    { name = "rand" },
     { name = "thiserror" },       # TODO: Temporary for v2 migration
     { name = "twox-hash" },       # TODO: Waiting upgrade via lz4_flex, arrow-ipc
+    { name = "wasi" },
+    { name = "webpki-roots" },    # TODO: Waiting for v1 upgrade to propagate
     { name = "windows-strings" },
     { name = "windows-sys" },
 ]
@@ -30,21 +26,15 @@ allow = [
     "BSD-2-Clause",
     "BSD-3-Clause",
     "CC0-1.0",
+    "CDLA-Permissive-2.0",
     "ISC",
     "MIT",
-    "MPL-2.0",
     "0BSD",
     "Unicode-3.0",
     "Unlicense",
     "Zlib",
 ]
 private = { ignore = true }
-
-
-[[licenses.clarify]]
-name = "ring"
-expression = "MIT AND ISC AND OpenSSL"
-license-files = [{ path = "LICENSE", hash = 0xbd0eed23 }]
 
 
 [sources]

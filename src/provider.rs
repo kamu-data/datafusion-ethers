@@ -1,7 +1,6 @@
 use alloy::primitives::{Address, B256};
-use alloy::providers::RootProvider;
+use alloy::providers::DynProvider;
 use alloy::rpc::types::eth::{BlockNumberOrTag, Filter, FilterBlockOption};
-use alloy::transports::BoxTransport;
 use datafusion::catalog::{CatalogProvider, SchemaProvider, Session};
 use datafusion::error::{DataFusionError, Result as DfResult};
 use datafusion::execution::TaskContext;
@@ -31,11 +30,11 @@ use crate::utils::*;
 
 #[derive(Debug)]
 pub struct EthCatalog {
-    rpc_client: RootProvider<BoxTransport>,
+    rpc_client: DynProvider,
 }
 
 impl EthCatalog {
-    pub fn new(rpc_client: RootProvider<BoxTransport>) -> Self {
+    pub fn new(rpc_client: DynProvider) -> Self {
         Self { rpc_client }
     }
 }
@@ -63,11 +62,11 @@ impl CatalogProvider for EthCatalog {
 
 #[derive(Debug)]
 pub struct EthSchema {
-    rpc_client: RootProvider<BoxTransport>,
+    rpc_client: DynProvider,
 }
 
 impl EthSchema {
-    pub fn new(rpc_client: RootProvider<BoxTransport>) -> Self {
+    pub fn new(rpc_client: DynProvider) -> Self {
         Self { rpc_client }
     }
 }
@@ -101,11 +100,11 @@ impl SchemaProvider for EthSchema {
 #[derive(Debug)]
 pub struct EthLogsTable {
     schema: SchemaRef,
-    rpc_client: RootProvider<BoxTransport>,
+    rpc_client: DynProvider,
 }
 
 impl EthLogsTable {
-    pub fn new(rpc_client: RootProvider<BoxTransport>) -> Self {
+    pub fn new(rpc_client: DynProvider) -> Self {
         Self {
             schema: crate::convert::EthRawLogsToArrow::new().schema(),
             rpc_client,
@@ -366,7 +365,7 @@ impl TableProvider for EthLogsTable {
 pub struct EthGetLogs {
     projected_schema: SchemaRef,
     projection: Option<Vec<usize>>,
-    rpc_client: RootProvider<BoxTransport>,
+    rpc_client: DynProvider,
     filter: Filter,
     stream_options: StreamOptions,
     limit: Option<usize>,
@@ -375,7 +374,7 @@ pub struct EthGetLogs {
 
 impl EthGetLogs {
     pub fn new(
-        rpc_client: RootProvider<BoxTransport>,
+        rpc_client: DynProvider,
         projected_schema: SchemaRef,
         projection: Option<Vec<usize>>,
         filter: Filter,
@@ -409,7 +408,7 @@ impl EthGetLogs {
     }
 
     fn execute_impl(
-        rpc_client: RootProvider<BoxTransport>,
+        rpc_client: DynProvider,
         filter: Filter,
         options: StreamOptions,
         projection: Option<Vec<usize>>,

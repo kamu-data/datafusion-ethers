@@ -1,12 +1,12 @@
 use std::{path::PathBuf, sync::Arc};
 
 use alloy::hex::ToHexExt;
+use alloy::providers::{DynProvider, Provider};
 use alloy::sol;
 use alloy::{
     node_bindings::{Anvil, AnvilInstance},
     primitives::Address,
-    providers::{ProviderBuilder, RootProvider},
-    transports::BoxTransport,
+    providers::ProviderBuilder,
 };
 use tokio::sync::{Mutex, MutexGuard};
 
@@ -29,7 +29,7 @@ sol!(
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-type StateT = Option<(Arc<AnvilInstance>, RootProvider<BoxTransport>)>;
+type StateT = Option<(Arc<AnvilInstance>, DynProvider)>;
 
 static TEST_CHAIN_STATE: Mutex<StateT> = Mutex::const_new(None);
 
@@ -38,7 +38,7 @@ static TEST_CHAIN_STATE: Mutex<StateT> = Mutex::const_new(None);
 #[allow(dead_code)]
 pub struct TestChain<'a> {
     pub anvil: Arc<AnvilInstance>,
-    pub rpc_client: RootProvider<BoxTransport>,
+    pub rpc_client: DynProvider,
     // Anvil does not like concurrent access so we serialize
     // all tests that are accessing it
     guard: MutexGuard<'a, StateT>,
@@ -52,9 +52,10 @@ pub async fn get_test_chain() -> TestChain<'static> {
     if state_guard.is_none() {
         let anvil = Anvil::new().spawn();
         let rpc_client = ProviderBuilder::new()
-            .on_builtin(&anvil.endpoint())
+            .connect(&anvil.endpoint())
             .await
-            .unwrap();
+            .unwrap()
+            .erased();
 
         let contracts_dir = PathBuf::from("tests/contracts");
         let rpc_endpoint = anvil.endpoint();

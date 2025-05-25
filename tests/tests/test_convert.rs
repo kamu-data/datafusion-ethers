@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use alloy::hex;
+use alloy::providers::Provider;
 use alloy::{
     primitives::{Address, B256},
     providers::ProviderBuilder,
@@ -353,10 +354,10 @@ async fn test_udf_eth_event_selector() {
 #[test_log::test(tokio::test)]
 async fn test_sql_to_pushdown_filter() {
     let rpc_client = ProviderBuilder::new()
-        .on_builtin("http://localhost:12345")
+        .connect("http://localhost:12345")
         .await
-        .unwrap();
-    //let rpc_client = Arc::new(Provider::<Http>::connect("http://localhost:12345").await);
+        .unwrap()
+        .erased();
 
     let df_ctx = SessionContext::new();
     df_ctx.register_catalog(

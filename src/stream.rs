@@ -1,7 +1,7 @@
 use alloy::{
-    providers::{Provider, RootProvider},
-    rpc::types::eth::{BlockNumberOrTag, BlockTransactionsKind, Filter, FilterBlockOption, Log},
-    transports::{BoxTransport, RpcError, TransportErrorKind},
+    providers::{DynProvider, Provider},
+    rpc::types::eth::{BlockNumberOrTag, Filter, FilterBlockOption, Log},
+    transports::{RpcError, TransportErrorKind},
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -44,7 +44,7 @@ impl RawLogsStream {
     // TODO: Re-org detection and handling
     /// Streams batches of raw logs efficient and resumable pagination over `eth_getLogs` RPC endpoint,
     pub fn paginate(
-        rpc_client: RootProvider<BoxTransport>,
+        rpc_client: DynProvider,
         mut filter: Filter,
         options: StreamOptions,
         resume_from_state: Option<StreamState>,
@@ -109,7 +109,7 @@ impl RawLogsStream {
     }
 
     pub async fn filter_to_block_range(
-        rpc_client: &RootProvider<BoxTransport>,
+        rpc_client: &DynProvider,
         block_option: &FilterBlockOption,
     ) -> Result<(u64, u64), RpcError<TransportErrorKind>> {
         match block_option {
@@ -129,10 +129,7 @@ impl RawLogsStream {
                     BlockNumberOrTag::Latest
                     | BlockNumberOrTag::Safe
                     | BlockNumberOrTag::Finalized => {
-                        let Some(to_block) = rpc_client
-                            .get_block((*to).into(), BlockTransactionsKind::Hashes)
-                            .await?
-                        else {
+                        let Some(to_block) = rpc_client.get_block((*to).into()).await? else {
                             Err(RpcError::local_usage_str(&format!(
                                 "Unable to resolve block: {to:?}"
                             )))?

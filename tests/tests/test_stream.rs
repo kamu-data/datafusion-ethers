@@ -1,5 +1,5 @@
 use alloy::{
-    providers::RootProvider,
+    providers::DynProvider,
     rpc::types::eth::{BlockNumberOrTag, Filter},
 };
 use datafusion_ethers::stream::{StreamOptions, StreamState};
@@ -11,7 +11,7 @@ use futures::TryStreamExt as _;
 async fn test_stream_raw_logs() {
     let test_chain = super::chain::get_test_chain().await;
 
-    let assert_stream = |rpc_client: RootProvider<_>,
+    let assert_stream = |rpc_client: DynProvider,
                          filter: Filter,
                          options: StreamOptions,
                          resume_from_state: Option<StreamState>,

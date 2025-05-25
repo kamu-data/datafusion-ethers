@@ -148,7 +148,7 @@ impl ScalarUDFImpl for UdfEthDecodeEvent {
             let data = c_data.value(i);
 
             let decoded = event
-                .decode_log_parts(topics, data, true)
+                .decode_log_parts(topics, data)
                 .map_err(|e| DataFusionError::External(e.into()))?;
 
             builder.append_value(event_to_json(&event, &decoded).to_string());
@@ -244,7 +244,7 @@ impl ScalarUDFImpl for UdfEthTryDecodeEvent {
             }
             let data = c_data.value(i);
 
-            match event.decode_log_parts(topics, data, true) {
+            match event.decode_log_parts(topics, data) {
                 Ok(decoded) => builder.append_value(event_to_json(&event, &decoded).to_string()),
                 Err(_) => builder.append_null(),
             }
