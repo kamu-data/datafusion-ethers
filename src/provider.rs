@@ -115,56 +115,74 @@ impl EthLogsTable {
         match expr {
             Expr::BinaryExpr(e) => match (&*e.left, e.op, &*e.right) {
                 (Expr::Column(left), op, right) => match (left.name.as_str(), op, right) {
-                    ("address", Operator::Eq, Expr::Literal(ScalarValue::Binary(Some(v)))) => (
+                    (
+                        "address",
+                        Operator::Eq,
+                        Expr::Literal(ScalarValue::Binary(Some(v)), None),
+                    ) => (
                         TableProviderFilterPushDown::Exact,
                         filter.address(Address::from_slice(&v[..])),
                     ),
-                    ("topic0", Operator::Eq, Expr::Literal(ScalarValue::Binary(Some(v)))) => (
-                        TableProviderFilterPushDown::Exact,
-                        filter.event_signature(B256::from_slice(&v[..])),
-                    ),
-                    ("topic1", Operator::Eq, Expr::Literal(ScalarValue::Binary(Some(v)))) => (
-                        TableProviderFilterPushDown::Exact,
-                        filter.topic1(B256::from_slice(&v[..])),
-                    ),
-                    ("topic2", Operator::Eq, Expr::Literal(ScalarValue::Binary(Some(v)))) => (
-                        TableProviderFilterPushDown::Exact,
-                        filter.topic2(B256::from_slice(&v[..])),
-                    ),
-                    ("topic3", Operator::Eq, Expr::Literal(ScalarValue::Binary(Some(v)))) => (
-                        TableProviderFilterPushDown::Exact,
-                        filter.topic3(B256::from_slice(&v[..])),
-                    ),
-                    ("block_number", Operator::Eq, Expr::Literal(ScalarValue::UInt64(Some(v)))) => {
+                    ("topic0", Operator::Eq, Expr::Literal(ScalarValue::Binary(Some(v)), None)) => {
                         (
                             TableProviderFilterPushDown::Exact,
-                            filter.union((*v).into(), (*v).into()),
+                            filter.event_signature(B256::from_slice(&v[..])),
                         )
                     }
-                    ("block_number", Operator::Gt, Expr::Literal(ScalarValue::UInt64(Some(v)))) => {
+                    ("topic1", Operator::Eq, Expr::Literal(ScalarValue::Binary(Some(v)), None)) => {
                         (
                             TableProviderFilterPushDown::Exact,
-                            filter.union((*v + 1).into(), BlockNumberOrTag::Latest),
+                            filter.topic1(B256::from_slice(&v[..])),
+                        )
+                    }
+                    ("topic2", Operator::Eq, Expr::Literal(ScalarValue::Binary(Some(v)), None)) => {
+                        (
+                            TableProviderFilterPushDown::Exact,
+                            filter.topic2(B256::from_slice(&v[..])),
+                        )
+                    }
+                    ("topic3", Operator::Eq, Expr::Literal(ScalarValue::Binary(Some(v)), None)) => {
+                        (
+                            TableProviderFilterPushDown::Exact,
+                            filter.topic3(B256::from_slice(&v[..])),
                         )
                     }
                     (
                         "block_number",
+                        Operator::Eq,
+                        Expr::Literal(ScalarValue::UInt64(Some(v)), None),
+                    ) => (
+                        TableProviderFilterPushDown::Exact,
+                        filter.union((*v).into(), (*v).into()),
+                    ),
+                    (
+                        "block_number",
+                        Operator::Gt,
+                        Expr::Literal(ScalarValue::UInt64(Some(v)), None),
+                    ) => (
+                        TableProviderFilterPushDown::Exact,
+                        filter.union((*v + 1).into(), BlockNumberOrTag::Latest),
+                    ),
+                    (
+                        "block_number",
                         Operator::GtEq,
-                        Expr::Literal(ScalarValue::UInt64(Some(v))),
+                        Expr::Literal(ScalarValue::UInt64(Some(v)), None),
                     ) => (
                         TableProviderFilterPushDown::Exact,
                         filter.union((*v).into(), BlockNumberOrTag::Latest),
                     ),
-                    ("block_number", Operator::Lt, Expr::Literal(ScalarValue::UInt64(Some(v)))) => {
-                        (
-                            TableProviderFilterPushDown::Exact,
-                            filter.union(BlockNumberOrTag::Earliest, (*v - 1).into()),
-                        )
-                    }
+                    (
+                        "block_number",
+                        Operator::Lt,
+                        Expr::Literal(ScalarValue::UInt64(Some(v)), None),
+                    ) => (
+                        TableProviderFilterPushDown::Exact,
+                        filter.union(BlockNumberOrTag::Earliest, (*v - 1).into()),
+                    ),
                     (
                         "block_number",
                         Operator::LtEq,
-                        Expr::Literal(ScalarValue::UInt64(Some(v))),
+                        Expr::Literal(ScalarValue::UInt64(Some(v)), None),
                     ) => (
                         TableProviderFilterPushDown::Exact,
                         filter.union(BlockNumberOrTag::Earliest, (*v).into()),
@@ -241,9 +259,11 @@ impl EthLogsTable {
         expr: &BinaryExpr,
     ) -> (TableProviderFilterPushDown, Option<&Column>, Vec<&Vec<u8>>) {
         match (&*expr.left, expr.op, &*expr.right) {
-            (Expr::Column(col), Operator::Eq, Expr::Literal(ScalarValue::Binary(Some(val)))) => {
-                (TableProviderFilterPushDown::Exact, Some(col), vec![val])
-            }
+            (
+                Expr::Column(col),
+                Operator::Eq,
+                Expr::Literal(ScalarValue::Binary(Some(val)), None),
+            ) => (TableProviderFilterPushDown::Exact, Some(col), vec![val]),
             (Expr::BinaryExpr(left), Operator::Or, Expr::BinaryExpr(right)) => {
                 // Merge values from two branches, but only if they refer to the same column
                 let mut left = Self::collect_or_group(left);
