@@ -10,11 +10,8 @@ workspace-default-features = "deny"
 skip-tree = [
     { name = "hashbrown" },
     { name = "rand" },
-    { name = "thiserror" },       # TODO: Temporary for v2 migration
-    { name = "twox-hash" },       # TODO: Waiting upgrade via lz4_flex, arrow-ipc
     { name = "wasi" },
-    { name = "webpki-roots" },    # TODO: Waiting for v1 upgrade to propagate
-    { name = "windows-strings" },
+    { name = "webpki-roots" }, # TODO: Waiting for v1 upgrade to propagate
     { name = "windows-sys" },
 ]
 deny = [{ name = "openssl" }]

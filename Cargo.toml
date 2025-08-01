@@ -1,7 +1,7 @@
 [package]
 name = "datafusion-ethers"
-version = "48.0.0"
-edition = "2021"
+version = "49.0.0"
+edition = "2024"
 repository = "https://github.com/kamu-data/datafusion-ethers"
 description = "Ethereum RPC bridge for Apache Datafusion"
 keywords = ["datafusion", "sql", "ethereum", "blockchain"]
@@ -20,7 +20,7 @@ alloy = { version = "1", default-features = false, features = [
     "provider-ws",
     "rpc-types-eth",
 ] }
-datafusion = { version = "48", default-features = false }
+datafusion = { version = "49", default-features = false }
 futures = { version = "0.3" }
 serde_json = { version = "1" }
 tokio = { version = "1", default-features = false }
@@ -34,7 +34,7 @@ alloy = { version = "1", default-features = false, features = [
     "sol-types",
     "contract",
 ] }
-datafusion = { version = "48", default-features = false, features = [
+datafusion = { version = "49", default-features = false, features = [
     "parquet",
 ] }
 indoc = { version = "2" }

@@ -92,7 +92,9 @@ impl ScalarUDFImpl for UdfEthDecodeEvent {
     #[allow(clippy::get_first)]
     fn return_type(&self, args: &[DataType]) -> datafusion::error::Result<DataType> {
         if args.len() != 6 {
-            return plan_err!("eth_decode_event accepts 6 arguments: event_signature, topic0, topic1, topic2, topic3, data");
+            return plan_err!(
+                "eth_decode_event accepts 6 arguments: event_signature, topic0, topic1, topic2, topic3, data"
+            );
         }
         if !matches!(args.get(0), Some(&DataType::Utf8)) {
             return plan_err!("event_signature must be a Utf8 scalar");
@@ -189,7 +191,9 @@ impl ScalarUDFImpl for UdfEthTryDecodeEvent {
     #[allow(clippy::get_first)]
     fn return_type(&self, args: &[DataType]) -> datafusion::error::Result<DataType> {
         if args.len() != 6 {
-            return plan_err!("eth_decode_event accepts 6 arguments: event_signature, topic0, topic1, topic2, topic3, data");
+            return plan_err!(
+                "eth_decode_event accepts 6 arguments: event_signature, topic0, topic1, topic2, topic3, data"
+            );
         }
         if !matches!(args.get(0), Some(&DataType::Utf8)) {
             return plan_err!("event_signature must be a Utf8 scalar");

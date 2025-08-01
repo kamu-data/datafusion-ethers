@@ -414,6 +414,12 @@ impl EthGetLogs {
                 datafusion::physical_plan::execution_plan::EmissionType::Incremental,
                 // TODO: Change to Unbounded
                 datafusion::physical_plan::execution_plan::Boundedness::Bounded,
+            )
+            .with_scheduling_type(
+                // TODO: Validate assumption: Since we pull data from the network
+                // we will never get a situation where control is never returned
+                // to the task scheduler.
+                datafusion::physical_plan::execution_plan::SchedulingType::Cooperative,
             ),
         }
     }
@@ -515,10 +521,11 @@ impl ExecutionPlan for EthGetLogs {
             self.projection.clone(),
             self.limit,
         );
-        Ok(Box::pin(RecordBatchStreamAdapter::new(
-            self.projected_schema.clone(),
-            stream,
-        )))
+
+        let record_batch_stream =
+            RecordBatchStreamAdapter::new(self.projected_schema.clone(), stream);
+
+        Ok(Box::pin(record_batch_stream))
     }
 }
 
@@ -538,7 +545,7 @@ impl DisplayAs for EthGetLogs {
                         .collect::<Vec<_>>()
                         .join(", ");
 
-                    write!(f, "projection=[{}]", projection_str)?;
+                    write!(f, "projection=[{projection_str}]")?;
                 }
 
                 let mut filters = Vec::new();
@@ -547,8 +554,8 @@ impl DisplayAs for EthGetLogs {
                     FilterBlockOption::Range {
                         from_block,
                         to_block,
-                    } => filters.push(format!("block_number=[{:?}, {:?}]", from_block, to_block)),
-                    FilterBlockOption::AtBlockHash(h) => filters.push(format!("block_hash={}", h)),
+                    } => filters.push(format!("block_number=[{from_block:?}, {to_block:?}]")),
+                    FilterBlockOption::AtBlockHash(h) => filters.push(format!("block_hash={h}")),
                 }
 
                 if !self.filter.address.is_empty() {
@@ -575,7 +582,7 @@ impl DisplayAs for EthGetLogs {
                 write!(f, ", filter=[{}]", filters.join(", "))?;
 
                 if let Some(limit) = self.limit {
-                    write!(f, ", limit={}", limit)?;
+                    write!(f, ", limit={limit}")?;
                 }
 
                 Ok(())
@@ -594,7 +601,7 @@ impl DisplayAs for EthGetLogs {
                         .collect::<Vec<_>>()
                         .join(", ");
 
-                    writeln!(f, "projection=[{}]", projection_str)?;
+                    writeln!(f, "projection=[{projection_str}]")?;
                 }
 
                 let mut filters = Vec::new();
@@ -603,8 +610,8 @@ impl DisplayAs for EthGetLogs {
                     FilterBlockOption::Range {
                         from_block,
                         to_block,
-                    } => filters.push(format!("block_number=[{:?}, {:?}]", from_block, to_block)),
-                    FilterBlockOption::AtBlockHash(h) => filters.push(format!("block_hash={}", h)),
+                    } => filters.push(format!("block_number=[{from_block:?}, {to_block:?}]")),
+                    FilterBlockOption::AtBlockHash(h) => filters.push(format!("block_hash={h}")),
                 }
 
                 if !self.filter.address.is_empty() {
@@ -631,7 +638,7 @@ impl DisplayAs for EthGetLogs {
                 writeln!(f, "filter=[{}]", filters.join(", "))?;
 
                 if let Some(limit) = self.limit {
-                    writeln!(f, "limit={}", limit)?;
+                    writeln!(f, "limit={limit}")?;
                 }
 
                 Ok(())

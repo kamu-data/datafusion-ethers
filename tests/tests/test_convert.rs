@@ -379,11 +379,10 @@ async fn test_sql_to_pushdown_filter() {
                 to_block: Some(BlockNumberOrTag::Latest),
             }
         ),
-        "{:?}",
-        filter
+        "{filter:?}"
     );
-    assert!(filter.address.is_empty(), "{:?}", filter);
-    assert!(filter.topics.iter().all(|t| t.is_empty()), "{:?}", filter);
+    assert!(filter.address.is_empty(), "{filter:?}");
+    assert!(filter.topics.iter().all(|t| t.is_empty()), "{filter:?}");
 
     // ---
     let filter = datafusion_ethers::convert::sql_to_pushdown_filter(
@@ -406,11 +405,10 @@ async fn test_sql_to_pushdown_filter() {
                 to_block: Some(BlockNumberOrTag::Number(20)),
             }
         ),
-        "{:?}",
-        filter
+        "{filter:?}"
     );
-    assert!(filter.address.is_empty(), "{:?}", filter);
-    assert!(filter.topics.iter().all(|t| t.is_empty()), "{:?}", filter);
+    assert!(filter.address.is_empty(), "{filter:?}");
+    assert!(filter.topics.iter().all(|t| t.is_empty()), "{filter:?}");
 
     // ---
     let filter = datafusion_ethers::convert::sql_to_pushdown_filter(
@@ -436,24 +434,21 @@ async fn test_sql_to_pushdown_filter() {
                 to_block: Some(BlockNumberOrTag::Number(20)),
             }
         ),
-        "{:?}",
-        filter
+        "{filter:?}"
     );
     assert_eq!(
         filter.address,
         FilterSet::from(Address::from(hex!(
             "5fbdb2315678afecb367f032d93f642f64180aa3"
         ))),
-        "{:?}",
-        filter
+        "{filter:?}"
     );
     assert_eq!(
         filter.topics[0],
         FilterSet::from(B256::from(hex!(
             "000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266"
         ))),
-        "{:?}",
-        filter
+        "{filter:?}"
     );
 
     // ---
@@ -485,24 +480,21 @@ async fn test_sql_to_pushdown_filter() {
                 to_block: Some(BlockNumberOrTag::Number(20)),
             }
         ),
-        "{:?}",
-        filter
+        "{filter:?}"
     );
     assert_eq!(
         filter.address,
         FilterSet::from(Address::from(hex!(
             "5fbdb2315678afecb367f032d93f642f64180aa3"
         ))),
-        "{:?}",
-        filter
+        "{filter:?}"
     );
     assert_eq!(
         filter.topics[0],
         FilterSet::from(B256::from(hex!(
             "000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266"
         ))),
-        "{:?}",
-        filter
+        "{filter:?}"
     );
 }
 

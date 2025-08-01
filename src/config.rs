@@ -87,14 +87,12 @@ impl ExtensionOptions for EthProviderConfig {
             ConfigEntry {
                 key: "block_range_from".to_string(),
                 value: Some(self.block_range_from.to_string()),
-                description:
-                    "Lower boundry (inclusive) restriction on block range when pushing down predicate to the node",
+                description: "Lower boundry (inclusive) restriction on block range when pushing down predicate to the node",
             },
             ConfigEntry {
                 key: "block_range_to".to_string(),
                 value: Some(self.block_range_to.to_string()),
-                description:
-                    "Upper boundry (inclusive) restriction on block range when pushing down predicate to the node",
+                description: "Upper boundry (inclusive) restriction on block range when pushing down predicate to the node",
             },
         ]
     }
