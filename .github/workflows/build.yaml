@@ -13,7 +13,7 @@ jobs:
     name: Lint / Code
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions-rs/toolchain@v1
         with:
           components: rustfmt, clippy
@@ -35,7 +35,7 @@ jobs:
     name: Lint / Dependencies
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions-rs/toolchain@v1
       - uses: cargo-bins/cargo-binstall@main
       - run: cargo binstall cargo-deny -y
@@ -47,7 +47,7 @@ jobs:
     env:
       CARGO_FLAGS: ""
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions-rs/toolchain@v1
       - uses: swatinem/rust-cache@v2
         with:
