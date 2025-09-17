@@ -13,10 +13,12 @@ license = "Apache-2.0"
 async-stream = { version = "0.3" }
 async-trait = { version = "0.1" }
 alloy = { version = "1", default-features = false, features = [
-    "std",
     "dyn-abi",
+    "network",
+    "providers",
     "json-abi",
     "rpc-types-eth",
+    "std",
 ] }
 datafusion = { version = "49", default-features = false }
 futures = { version = "0.3" }
