@@ -1,4 +1,5 @@
 use datafusion::{config::ConfigOptions, prelude::*};
+use datafusion_ethers::config::EthProviderConfig;
 use indoc::indoc;
 use std::sync::Arc;
 
@@ -30,6 +31,7 @@ async fn test_pushdown_common_cfg(
     df_ctx.register_catalog(
         "eth",
         Arc::new(datafusion_ethers::provider::EthCatalog::new(
+            EthProviderConfig::default(),
             test_chain.rpc_client,
         )),
     );
@@ -62,6 +64,7 @@ async fn test_scan() {
     df_ctx.register_catalog(
         "eth",
         Arc::new(datafusion_ethers::provider::EthCatalog::new(
+            EthProviderConfig::default(),
             test_chain.rpc_client,
         )),
     );
@@ -147,6 +150,7 @@ async fn test_project() {
     df_ctx.register_catalog(
         "eth",
         Arc::new(datafusion_ethers::provider::EthCatalog::new(
+            EthProviderConfig::default(),
             test_chain.rpc_client,
         )),
     );

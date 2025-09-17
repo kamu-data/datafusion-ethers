@@ -8,6 +8,7 @@ workspace-default-features = "deny"
 # Avoid adding dependencies to this list as this slows down compilation.
 # Find another ways to avoid duplication.
 skip-tree = [
+    { name = "darling" },
     { name = "hashbrown" },
     { name = "rand" },
     { name = "wasi" },

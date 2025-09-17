@@ -19,9 +19,7 @@ pub struct EthDecodedLogsToArrow {
 }
 
 impl EthDecodedLogsToArrow {
-    pub fn new(event_type: &Event) -> Self {
-        let resolved_type = event_type.resolve().unwrap();
-
+    pub fn new(event_type: Event, resolved_type: DynSolEvent) -> Self {
         let mut fields = Vec::new();
         let mut field_builders = Vec::new();
 
@@ -49,9 +47,10 @@ impl EthDecodedLogsToArrow {
         }
     }
 
-    pub fn new_from_signature(signature: &str) -> Result<Self, alloy::dyn_abi::parser::Error> {
+    pub fn new_from_signature(signature: &str) -> Result<Self, alloy::dyn_abi::Error> {
         let event_type = alloy::json_abi::Event::parse(signature)?;
-        Ok(Self::new(&event_type))
+        let resolved_type = event_type.resolve()?;
+        Ok(Self::new(event_type, resolved_type))
     }
 
     pub fn push_decoded(&mut self, log: &DecodedEvent) {
@@ -74,6 +73,10 @@ impl EthDecodedLogsToArrow {
                 Field::new(&param.name, DataType::Boolean, false),
                 Box::<SolidityArrayBuilderBool>::default(),
             ),
+            DynSolType::Int(32) => (
+                Field::new(&param.name, DataType::Int32, false),
+                Box::<SolidityArrayBuilderInt32>::default(),
+            ),
             DynSolType::Int(64) => (
                 Field::new(&param.name, DataType::Int64, false),
                 Box::<SolidityArrayBuilderInt64>::default(),
@@ -85,6 +88,10 @@ impl EthDecodedLogsToArrow {
             DynSolType::Int(256) => (
                 Field::new(&param.name, DataType::Utf8, false),
                 Box::<SolidityArrayBuilderInt256>::default(),
+            ),
+            DynSolType::Uint(32) => (
+                Field::new(&param.name, DataType::UInt32, false),
+                Box::<SolidityArrayBuilderUInt32>::default(),
             ),
             DynSolType::Uint(64) => (
                 Field::new(&param.name, DataType::UInt64, false),
@@ -111,6 +118,10 @@ impl EthDecodedLogsToArrow {
             DynSolType::Bytes => (
                 Field::new(&param.name, DataType::Binary, false),
                 Box::<SolidityArrayBuilderBytes>::default(),
+            ),
+            DynSolType::String => (
+                Field::new(&param.name, DataType::Utf8, false),
+                Box::<SolidityArrayBuilderUtf8>::default(),
             ),
             _ => unimplemented!(
                 "Support for transcoding {typ} solidity type to arrow is not yet implemented",
@@ -161,6 +172,55 @@ impl SolidityArrayBuilder for SolidityArrayBuilderBool {
     fn append_value(&mut self, value: &DynSolValue) {
         match value {
             DynSolValue::Bool(v) => self.builder.append_value(*v),
+            _ => panic!("Unexpected value {value:?}"),
+        }
+    }
+    fn len(&self) -> usize {
+        self.builder.len()
+    }
+    fn finish(&mut self) -> Arc<dyn Array> {
+        Arc::new(self.builder.finish())
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+#[derive(Default)]
+struct SolidityArrayBuilderInt32 {
+    builder: array::Int32Builder,
+}
+
+impl SolidityArrayBuilder for SolidityArrayBuilderInt32 {
+    fn append_value(&mut self, value: &DynSolValue) {
+        match value {
+            DynSolValue::Int(v, 32) => {
+                let (sign, abs) = v.into_sign_and_abs();
+                let v = match sign {
+                    Sign::Positive => abs.as_limbs()[0] as i32,
+                    Sign::Negative => -(abs.as_limbs()[0] as i32),
+                };
+                self.builder.append_value(v);
+            }
+            _ => panic!("Unexpected value {value:?}"),
+        }
+    }
+    fn len(&self) -> usize {
+        self.builder.len()
+    }
+    fn finish(&mut self) -> Arc<dyn Array> {
+        Arc::new(self.builder.finish())
+    }
+}
+
+#[derive(Default)]
+struct SolidityArrayBuilderUInt32 {
+    builder: array::UInt32Builder,
+}
+
+impl SolidityArrayBuilder for SolidityArrayBuilderUInt32 {
+    fn append_value(&mut self, value: &DynSolValue) {
+        match value {
+            DynSolValue::Uint(v, 32) => self.builder.append_value(v.as_limbs()[0] as u32),
             _ => panic!("Unexpected value {value:?}"),
         }
     }
@@ -338,6 +398,28 @@ impl SolidityArrayBuilder for SolidityArrayBuilderBytes {
     fn append_value(&mut self, value: &DynSolValue) {
         match value {
             DynSolValue::Bytes(v) => self.builder.append_value(v),
+            _ => panic!("Unexpected value {value:?}"),
+        }
+    }
+    fn len(&self) -> usize {
+        self.builder.len()
+    }
+    fn finish(&mut self) -> Arc<dyn Array> {
+        Arc::new(self.builder.finish())
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+#[derive(Default)]
+struct SolidityArrayBuilderUtf8 {
+    builder: array::StringBuilder,
+}
+
+impl SolidityArrayBuilder for SolidityArrayBuilderUtf8 {
+    fn append_value(&mut self, value: &DynSolValue) {
+        match value {
+            DynSolValue::String(v) => self.builder.append_value(v),
             _ => panic!("Unexpected value {value:?}"),
         }
     }

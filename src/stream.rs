@@ -11,12 +11,22 @@ pub struct StreamOptions {
     /// Number of blocks to scan in one query. This should be small, as many
     /// RPC providers impose limits on this parameter
     pub block_stride: u64,
+
+    /// Many providers don't yet return `blockTimestamp` from `eth_getLogs` RPC endpoint
+    /// and in such cases `block_timestamp` column will be `null`.
+    /// If you enable this fallback the library will perform additional call to `eth_getBlock`
+    /// to populate the timestam, but this may result in significant performance penalty when
+    /// fetching many log records.
+    ///
+    /// See: https://github.com/ethereum/execution-apis/issues/295
+    pub use_block_timestamp_fallback: bool,
 }
 
 impl Default for StreamOptions {
     fn default() -> Self {
         Self {
             block_stride: 10_000,
+            use_block_timestamp_fallback: false,
         }
     }
 }
@@ -44,7 +54,7 @@ impl RawLogsStream {
     // TODO: Re-org detection and handling
     /// Streams batches of raw logs efficient and resumable pagination over `eth_getLogs` RPC endpoint,
     pub fn paginate(
-        rpc_client: DynProvider,
+        rpc_client: DynProvider<alloy::network::AnyNetwork>,
         mut filter: Filter,
         options: StreamOptions,
         resume_from_state: Option<StreamState>,
@@ -94,7 +104,12 @@ impl RawLogsStream {
                 );
 
                 // Query the node
-                let logs = rpc_client.get_logs(&filter).await?;
+                let mut logs = rpc_client.get_logs(&filter).await?;
+
+                // Resolve timestamp if needed
+                if options.use_block_timestamp_fallback && logs.iter().any(|l| l.block_timestamp.is_none()) {
+                    Self::populate_block_timestamps_fallback(&rpc_client, &mut logs).await?;
+                }
 
                 yield StreamBatch {
                     logs,
@@ -108,8 +123,51 @@ impl RawLogsStream {
         }
     }
 
+    /// This function will determine the timestamps for the first and last block in the batch
+    /// and approximates the timestamps for blocks in between by interpolating.
+    /// NOTE: This might not be reproducible if stride changes between runs
+    async fn populate_block_timestamps_fallback(
+        rpc_client: &DynProvider<alloy::network::AnyNetwork>,
+        logs: &mut [Log],
+    ) -> Result<(), RpcError<TransportErrorKind>> {
+        let first_log = logs.first().unwrap();
+        let last_log = logs.last().unwrap();
+
+        let first_block = rpc_client
+            .get_block_by_hash(first_log.block_hash.unwrap())
+            .await?
+            .unwrap();
+
+        let last_block = if first_log.block_hash == last_log.block_hash {
+            first_block.clone()
+        } else {
+            rpc_client
+                .get_block_by_hash(last_log.block_hash.unwrap())
+                .await?
+                .unwrap()
+        };
+
+        let time_per_block = ((last_block.header.timestamp - first_block.header.timestamp) as f64)
+            / ((last_block.number() - first_block.number()) as f64);
+
+        tracing::debug!(
+            block_range = ?(first_block.number(), last_block.number()),
+            time_per_block,
+            "Populating block timestamps via fallback mechanism",
+        );
+
+        for log in logs.iter_mut() {
+            let block_offset = log.block_number.unwrap() - first_block.number();
+            let time_offset = time_per_block * (block_offset as f64);
+            let ts = first_block.header.timestamp + (time_offset.floor() as u64);
+            log.block_timestamp = Some(ts);
+        }
+
+        Ok(())
+    }
+
     pub async fn filter_to_block_range(
-        rpc_client: &DynProvider,
+        rpc_client: &DynProvider<alloy::network::AnyNetwork>,
         block_option: &FilterBlockOption,
     ) -> Result<(u64, u64), RpcError<TransportErrorKind>> {
         match block_option {

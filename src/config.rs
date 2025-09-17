@@ -10,9 +10,19 @@ use crate::stream::StreamOptions;
 
 #[derive(Debug, Clone)]
 pub struct EthProviderConfig {
+    pub schema_name: String,
     pub block_range_from: BlockNumberOrTag,
     pub block_range_to: BlockNumberOrTag,
     pub block_stride: u64,
+
+    /// Many providers don't yet return `blockTimestamp` from `eth_getLogs` RPC endpoint
+    /// and in such cases `block_timestamp` column will be `null`.
+    /// If you enable this fallback the library will perform additional calls to `eth_getBlock`
+    /// to populate the timestamp. Interpolation of block times within the batch is used to
+    /// avoid resolving every single block not to introduce significant performance penalty.
+    ///
+    /// See: https://github.com/ethereum/execution-apis/issues/295
+    pub use_block_timestamp_fallback: bool,
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -20,9 +30,11 @@ pub struct EthProviderConfig {
 impl Default for EthProviderConfig {
     fn default() -> Self {
         Self {
+            schema_name: "eth".to_string(),
             block_range_from: BlockNumberOrTag::Earliest,
             block_range_to: BlockNumberOrTag::Latest,
             block_stride: 100_000,
+            use_block_timestamp_fallback: false,
         }
     }
 }
@@ -39,6 +51,7 @@ impl EthProviderConfig {
     pub fn stream_options(&self) -> StreamOptions {
         StreamOptions {
             block_stride: self.block_stride,
+            use_block_timestamp_fallback: self.use_block_timestamp_fallback,
         }
     }
 }

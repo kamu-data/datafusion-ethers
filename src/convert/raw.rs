@@ -3,6 +3,8 @@ use datafusion::arrow::array::{self, ArrayBuilder};
 use datafusion::arrow::datatypes::{DataType, Field, Schema, SchemaRef, TimeUnit};
 use std::sync::Arc;
 
+use crate::stream::StreamOptions;
+
 use super::{AppendError, Transcoder};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -24,14 +26,8 @@ pub struct EthRawLogsToArrow {
     data: array::BinaryBuilder,
 }
 
-impl Default for EthRawLogsToArrow {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl EthRawLogsToArrow {
-    pub fn new() -> Self {
+    pub fn new(options: &StreamOptions) -> Self {
         let utc: Arc<str> = Arc::from("UTC");
         Self {
             schema: Arc::new(Schema::new(vec![
@@ -42,7 +38,7 @@ impl EthRawLogsToArrow {
                 Field::new(
                     "block_timestamp",
                     DataType::Timestamp(TimeUnit::Second, Some(utc.clone())),
-                    true,
+                    !options.use_block_timestamp_fallback,
                 ),
                 Field::new("transaction_index", DataType::UInt64, false),
                 Field::new("transaction_hash", DataType::Binary, false),

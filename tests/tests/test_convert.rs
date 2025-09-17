@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use alloy::dyn_abi::Specifier;
 use alloy::hex;
 use alloy::providers::Provider;
 use alloy::{
@@ -9,6 +10,7 @@ use alloy::{
 };
 use datafusion::prelude::*;
 use datafusion_ethers::convert::Transcoder as _;
+use datafusion_ethers::stream::StreamOptions;
 use indoc::indoc;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -56,7 +58,7 @@ fn get_sample_log() -> Log {
 
 #[test_log::test(tokio::test)]
 async fn test_raw_logs_to_record_batch() {
-    let mut coder = datafusion_ethers::convert::EthRawLogsToArrow::new();
+    let mut coder = datafusion_ethers::convert::EthRawLogsToArrow::new(&StreamOptions::default());
     coder.append(&[get_sample_log()]).unwrap();
     let batch = coder.finish();
 
@@ -108,8 +110,9 @@ async fn test_decoded_logs_to_record_batch() {
         "event SendRequest(uint64 indexed requestId, address indexed consumerAddr, bytes request)",
     )
     .unwrap();
+    let resolved = event.resolve().unwrap();
 
-    let mut coder = datafusion_ethers::convert::EthDecodedLogsToArrow::new(&event);
+    let mut coder = datafusion_ethers::convert::EthDecodedLogsToArrow::new(event, resolved);
     coder.append(&[get_sample_log()]).unwrap();
     let batch = coder.finish();
 
@@ -149,6 +152,7 @@ async fn test_decoded_logs_to_record_batch() {
 #[test_log::test(tokio::test)]
 async fn test_raw_and_decoded_logs_to_record_batch() {
     let mut coder = datafusion_ethers::convert::EthRawAndDecodedLogsToArrow::new_from_signature(
+        &StreamOptions::default(),
         "event SendRequest(uint64 indexed requestId, address indexed consumerAddr, bytes request)",
     )
     .unwrap();
@@ -207,7 +211,7 @@ async fn test_udf_eth_decode_event() {
     let mut ctx = SessionContext::new();
     datafusion_ethers::udf::register_all(&mut ctx).unwrap();
 
-    let mut coder = datafusion_ethers::convert::EthRawLogsToArrow::new();
+    let mut coder = datafusion_ethers::convert::EthRawLogsToArrow::new(&StreamOptions::default());
     coder.append(&[get_sample_log()]).unwrap();
     let batch = coder.finish();
     ctx.register_batch("logs", batch).unwrap();
@@ -353,7 +357,7 @@ async fn test_udf_eth_event_selector() {
 
 #[test_log::test(tokio::test)]
 async fn test_sql_to_pushdown_filter() {
-    let rpc_client = ProviderBuilder::new()
+    let rpc_client = ProviderBuilder::new_with_network::<alloy::network::AnyNetwork>()
         .connect("http://localhost:12345")
         .await
         .unwrap()
@@ -362,7 +366,10 @@ async fn test_sql_to_pushdown_filter() {
     let df_ctx = SessionContext::new();
     df_ctx.register_catalog(
         "eth",
-        Arc::new(datafusion_ethers::provider::EthCatalog::new(rpc_client)),
+        Arc::new(datafusion_ethers::provider::EthCatalog::new(
+            datafusion_ethers::config::EthProviderConfig::default(),
+            rpc_client,
+        )),
     );
 
     // ---

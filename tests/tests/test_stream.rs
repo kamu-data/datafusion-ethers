@@ -1,4 +1,5 @@
 use alloy::{
+    network::AnyNetwork,
     providers::DynProvider,
     rpc::types::eth::{BlockNumberOrTag, Filter},
 };
@@ -11,7 +12,7 @@ use futures::TryStreamExt as _;
 async fn test_stream_raw_logs() {
     let test_chain = super::chain::get_test_chain().await;
 
-    let assert_stream = |rpc_client: DynProvider,
+    let assert_stream = |rpc_client: DynProvider<AnyNetwork>,
                          filter: Filter,
                          options: StreamOptions,
                          resume_from_state: Option<StreamState>,
@@ -71,7 +72,10 @@ async fn test_stream_raw_logs() {
         Filter::default()
             .from_block(BlockNumberOrTag::Earliest)
             .to_block(BlockNumberOrTag::Latest),
-        StreamOptions { block_stride: 1 },
+        StreamOptions {
+            block_stride: 1,
+            use_block_timestamp_fallback: false,
+        },
         None,
         vec![
             (0, StreamState { last_seen_block: 0 }),
@@ -89,7 +93,10 @@ async fn test_stream_raw_logs() {
         Filter::default()
             .from_block(BlockNumberOrTag::Earliest)
             .to_block(BlockNumberOrTag::Latest),
-        StreamOptions { block_stride: 1 },
+        StreamOptions {
+            block_stride: 1,
+            use_block_timestamp_fallback: false,
+        },
         Some(StreamState { last_seen_block: 3 }),
         vec![(2, StreamState { last_seen_block: 4 })],
     )

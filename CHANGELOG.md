@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [49.1.0] - 2025-09-16
+### Added
+- `use_block_timestamp_fallback` config option allows to interpolate `block_timestamp` for providers that don't return timestamp info as part of `eth_getBlocks` results
+- `schema_nam` config option
+- Examples for querying Ethereum and PEAQ networks
+### Changed
+- The RPC client is now using `alloy::AnyNetwork` for compatibility with more EVM networks
+- Improved error handling of solidity signature parsing
+
 ## [49.0.0] - 2025-08-01
 ### Changed
 - Upgraded to `datafusion v49`

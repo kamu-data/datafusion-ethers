@@ -19,52 +19,9 @@ The crate also provides UDFs (a set of custom SQL functions) for ABI decoding.
 The crate is currently designed for embedding, but the goal is also to provide an application that supports [FlightSQL](https://arrow.apache.org/docs/format/FlightSql.html) protocol and streaming data queries.
 
 
-## Warning about crates.io release
-We have currently suspended publishing this crate to `crates.io` after migrating from `ethers` to `alloy`. This is because `alloy` team is not publishing their crate yet (see [alloy-rs/alloy#791](https://github.com/alloy-rs/alloy/issues/791)). Please use the `git` dependency for now.
-
-
 ## Quick Start
-Setup dependencies:
-```toml
-# Note: Alloy is still under active development and needs to be used via git
-alloy = { git = "https://github.com/alloy-rs/alloy", branch = "main", features = [
-    "provider-http",
-    "provider-ws",
-] }
-datafusion = { version = "*" }
-datafusion-ethers = { git = "https://github.com/kamu-data/datafusion-ethers", branch = "master" }
-```
+See [examples](./examples/) directory for basic project setup.
 
-Initialize libraries and run queries:
-```rust
-// Create `alloy` RPC client
-let rpc_client = ProviderBuilder::new()
-    .on_builtin("http://localhost:8545")
-    .await
-    .unwrap();
-
-// (Optional) Add config extension
-let mut cfg = SessionConfig::new()
-    .with_option_extension(datafusion_ethers::config::EthProviderConfig::default());
-
-// Create `datafusion` session
-let mut ctx = SessionContext::new_with_config(cfg);
-
-// Register all UDFs
-datafusion_ethers::udf::register_all(&mut ctx).unwrap();
-
-// (Optional) Register JSON UDFs
-datafusion_functions_json::register_all(&mut ctx).unwrap();
-
-// Register catalog provider
-ctx.register_catalog(
-    "eth",
-    Arc::new(datafusion_ethers::provider::EthCatalog::new(rpc_client)),
-);
-
-let df = ctx.sql("select * from eth.eth.logs limit 5").await.unwrap();
-df.show().await.unwrap();
-```
 
 ## Example Queries
 Get raw logs:

@@ -16,8 +16,6 @@ alloy = { version = "1", default-features = false, features = [
     "std",
     "dyn-abi",
     "json-abi",
-    "provider-http",
-    "provider-ws",
     "rpc-types-eth",
 ] }
 datafusion = { version = "49", default-features = false }
@@ -30,16 +28,23 @@ tracing = { version = "0.1", default-features = false }
 
 [dev-dependencies]
 alloy = { version = "1", default-features = false, features = [
-    "node-bindings",
-    "sol-types",
     "contract",
+    "node-bindings",
+    "provider-http",
+    "provider-ws",
+    "reqwest-rustls-tls",
+    "sol-types",
 ] }
 datafusion = { version = "49", default-features = false, features = [
     "parquet",
 ] }
+datafusion-functions-json = { version = "0.49", default-features = false }
 indoc = { version = "2" }
 pretty_assertions = { version = "1" }
 test-log = { version = "0.2", features = ["trace"] }
+tokio = { version = "1", default-features = false, features = [
+    "rt-multi-thread",
+] }
 tracing-subscriber = { version = "0.3" }
 
 

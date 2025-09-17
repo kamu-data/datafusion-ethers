@@ -1,8 +1,11 @@
+use alloy::dyn_abi::{DynSolEvent, Specifier};
 use alloy::json_abi::Event;
 use alloy::rpc::types::eth::Log;
 use datafusion::arrow::array::RecordBatch;
 use datafusion::arrow::datatypes::{DataType, Field, SchemaBuilder, SchemaRef};
 use std::sync::Arc;
+
+use crate::stream::StreamOptions;
 
 use super::{AppendError, Transcoder};
 
@@ -17,9 +20,9 @@ pub struct EthRawAndDecodedLogsToArrow {
 }
 
 impl EthRawAndDecodedLogsToArrow {
-    pub fn new(event_type: &Event) -> Self {
-        let raw = super::EthRawLogsToArrow::new();
-        let decoded = super::EthDecodedLogsToArrow::new(event_type);
+    pub fn new(options: &StreamOptions, event_type: Event, resolved_type: DynSolEvent) -> Self {
+        let raw = super::EthRawLogsToArrow::new(options);
+        let decoded = super::EthDecodedLogsToArrow::new(event_type, resolved_type);
 
         let mut builder = SchemaBuilder::from(&raw.schema().fields);
         builder.push(Field::new(
@@ -34,9 +37,13 @@ impl EthRawAndDecodedLogsToArrow {
         }
     }
 
-    pub fn new_from_signature(signature: &str) -> Result<Self, alloy::dyn_abi::parser::Error> {
+    pub fn new_from_signature(
+        options: &StreamOptions,
+        signature: &str,
+    ) -> Result<Self, alloy::dyn_abi::Error> {
         let event_type = alloy::json_abi::Event::parse(signature)?;
-        Ok(Self::new(&event_type))
+        let resolved_type = event_type.resolve()?;
+        Ok(Self::new(options, event_type, resolved_type))
     }
 }
 

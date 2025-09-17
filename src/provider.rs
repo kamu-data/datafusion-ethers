@@ -30,12 +30,16 @@ use crate::utils::*;
 
 #[derive(Debug)]
 pub struct EthCatalog {
-    rpc_client: DynProvider,
+    config: EthProviderConfig,
+    rpc_client: DynProvider<alloy::network::AnyNetwork>,
 }
 
 impl EthCatalog {
-    pub fn new(rpc_client: DynProvider) -> Self {
-        Self { rpc_client }
+    pub fn new(
+        config: EthProviderConfig,
+        rpc_client: DynProvider<alloy::network::AnyNetwork>,
+    ) -> Self {
+        Self { config, rpc_client }
     }
 }
 
@@ -45,14 +49,18 @@ impl CatalogProvider for EthCatalog {
     }
 
     fn schema_names(&self) -> Vec<String> {
-        vec!["eth".to_string()]
+        vec![self.config.schema_name.clone()]
     }
 
     fn schema(&self, name: &str) -> Option<Arc<dyn SchemaProvider>> {
-        match name {
-            "eth" => Some(Arc::new(EthSchema::new(self.rpc_client.clone()))),
-            _ => None,
+        if name != self.config.schema_name {
+            return None;
         }
+
+        Some(Arc::new(EthSchema::new(
+            self.config.clone(),
+            self.rpc_client.clone(),
+        )))
     }
 }
 
@@ -62,12 +70,16 @@ impl CatalogProvider for EthCatalog {
 
 #[derive(Debug)]
 pub struct EthSchema {
-    rpc_client: DynProvider,
+    config: EthProviderConfig,
+    rpc_client: DynProvider<alloy::network::AnyNetwork>,
 }
 
 impl EthSchema {
-    pub fn new(rpc_client: DynProvider) -> Self {
-        Self { rpc_client }
+    pub fn new(
+        config: EthProviderConfig,
+        rpc_client: DynProvider<alloy::network::AnyNetwork>,
+    ) -> Self {
+        Self { config, rpc_client }
     }
 }
 
@@ -83,7 +95,10 @@ impl SchemaProvider for EthSchema {
 
     async fn table(&self, name: &str) -> DfResult<Option<Arc<dyn TableProvider>>> {
         match name {
-            "logs" => Ok(Some(Arc::new(EthLogsTable::new(self.rpc_client.clone())))),
+            "logs" => Ok(Some(Arc::new(EthLogsTable::new(
+                &self.config,
+                self.rpc_client.clone(),
+            )))),
             _ => Ok(None),
         }
     }
@@ -100,15 +115,18 @@ impl SchemaProvider for EthSchema {
 #[derive(Debug)]
 pub struct EthLogsTable {
     schema: SchemaRef,
-    rpc_client: DynProvider,
+    rpc_client: DynProvider<alloy::network::AnyNetwork>,
 }
 
 impl EthLogsTable {
-    pub fn new(rpc_client: DynProvider) -> Self {
-        Self {
-            schema: crate::convert::EthRawLogsToArrow::new().schema(),
-            rpc_client,
-        }
+    pub fn new(
+        config: &EthProviderConfig,
+        rpc_client: DynProvider<alloy::network::AnyNetwork>,
+    ) -> Self {
+        let encoder = crate::convert::EthRawLogsToArrow::new(&config.stream_options());
+        let schema = encoder.schema();
+
+        Self { schema, rpc_client }
     }
 
     fn apply_expr(filter: Filter, expr: &Expr) -> (TableProviderFilterPushDown, Filter) {
@@ -385,7 +403,7 @@ impl TableProvider for EthLogsTable {
 pub struct EthGetLogs {
     projected_schema: SchemaRef,
     projection: Option<Vec<usize>>,
-    rpc_client: DynProvider,
+    rpc_client: DynProvider<alloy::network::AnyNetwork>,
     filter: Filter,
     stream_options: StreamOptions,
     limit: Option<usize>,
@@ -394,7 +412,7 @@ pub struct EthGetLogs {
 
 impl EthGetLogs {
     pub fn new(
-        rpc_client: DynProvider,
+        rpc_client: DynProvider<alloy::network::AnyNetwork>,
         projected_schema: SchemaRef,
         projection: Option<Vec<usize>>,
         filter: Filter,
@@ -434,7 +452,7 @@ impl EthGetLogs {
     }
 
     fn execute_impl(
-        rpc_client: DynProvider,
+        rpc_client: DynProvider<alloy::network::AnyNetwork>,
         filter: Filter,
         options: StreamOptions,
         projection: Option<Vec<usize>>,
@@ -442,12 +460,12 @@ impl EthGetLogs {
     ) -> impl Stream<Item = DfResult<RecordBatch>> {
         async_stream::try_stream! {
             let limit = limit.unwrap_or(usize::MAX);
-            let mut coder = crate::convert::EthRawLogsToArrow::new();
+            let mut coder = crate::convert::EthRawLogsToArrow::new(&options);
             let mut total = 0;
 
             // TODO: Streaming/unbounded API
             let mut log_stream = Box::pin(
-                crate::stream::RawLogsStream::paginate(rpc_client, filter, options, None)
+                crate::stream::RawLogsStream::paginate(rpc_client.clone(), filter, options, None)
             );
 
             while let Some(batch) = log_stream.try_next().await.map_err(|e| DataFusionError::External(e.into()))? {
