@@ -52,10 +52,6 @@ jobs:
       - uses: swatinem/rust-cache@v2
         with:
           cache-on-failure: true
-      # - uses: cargo-bins/cargo-binstall@main
-      # - name: Install cargo tools
-      #   run: |
-      #     cargo binstall cargo-nextest -y --force
       - name: Install foundry
         uses: foundry-rs/foundry-toolchain@v1
       - name: Build contracts
@@ -63,7 +59,7 @@ jobs:
         run: |
           npm ci
           forge build
-      - name: Build node
+      - name: Build
         run: cargo test ${{ env.CARGO_FLAGS }} --no-run
       - name: Run tests
         run: cargo test ${{ env.CARGO_FLAGS }}

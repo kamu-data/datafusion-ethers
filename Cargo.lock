@@ -1981,7 +1981,7 @@ checksum = "8ff336d1d755399753a9e4fbab001180e346fc8bfa063a97f1214b82274c00f8"
 
 [[package]]
 name = "datafusion-ethers"
-version = "49.0.0"
+version = "49.1.0"
 dependencies = [
  "alloy",
  "async-stream",
