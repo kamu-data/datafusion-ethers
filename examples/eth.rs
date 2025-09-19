@@ -27,8 +27,6 @@ async fn main() {
 
     datafusion_ethers::udf::register_all(&mut ctx).unwrap();
 
-    datafusion_functions_json::register_all(&mut ctx).unwrap();
-
     ctx.register_catalog(
         "eth",
         Arc::new(datafusion_ethers::provider::EthCatalog::new(

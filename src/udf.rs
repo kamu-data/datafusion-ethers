@@ -63,7 +63,7 @@ pub fn solidity_value_to_json(value: &DynSolValue) -> serde_json::Value {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 struct UdfEthDecodeEvent {
     signature: Signature,
 }
@@ -162,7 +162,7 @@ impl ScalarUDFImpl for UdfEthDecodeEvent {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 struct UdfEthTryDecodeEvent {
     signature: Signature,
 }
@@ -260,7 +260,7 @@ impl ScalarUDFImpl for UdfEthTryDecodeEvent {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 struct UdfEthEventSelector {
     signature: Signature,
 }
