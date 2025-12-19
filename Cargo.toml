@@ -20,7 +20,7 @@ alloy = { version = "1", default-features = false, features = [
     "rpc-types-eth",
     "std",
 ] }
-datafusion = { version = "51", default-features = false }
+datafusion = { version = "51", default-features = false, features = ["sql"] }
 futures = { version = "0.3" }
 serde_json = { version = "1" }
 tokio = { version = "1", default-features = false }
