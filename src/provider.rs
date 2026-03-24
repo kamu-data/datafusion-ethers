@@ -407,7 +407,7 @@ pub struct EthGetLogs {
     filter: Filter,
     stream_options: StreamOptions,
     limit: Option<usize>,
-    properties: PlanProperties,
+    properties: Arc<PlanProperties>,
 }
 
 impl EthGetLogs {
@@ -426,18 +426,20 @@ impl EthGetLogs {
             filter,
             stream_options,
             limit,
-            properties: PlanProperties::new(
-                EquivalenceProperties::new(projected_schema),
-                datafusion::physical_expr::Partitioning::UnknownPartitioning(1),
-                datafusion::physical_plan::execution_plan::EmissionType::Incremental,
-                // TODO: Change to Unbounded
-                datafusion::physical_plan::execution_plan::Boundedness::Bounded,
-            )
-            .with_scheduling_type(
-                // TODO: Validate assumption: Since we pull data from the network
-                // we will never get a situation where control is never returned
-                // to the task scheduler.
-                datafusion::physical_plan::execution_plan::SchedulingType::Cooperative,
+            properties: Arc::new(
+                PlanProperties::new(
+                    EquivalenceProperties::new(projected_schema),
+                    datafusion::physical_expr::Partitioning::UnknownPartitioning(1),
+                    datafusion::physical_plan::execution_plan::EmissionType::Incremental,
+                    // TODO: Change to Unbounded
+                    datafusion::physical_plan::execution_plan::Boundedness::Bounded,
+                )
+                .with_scheduling_type(
+                    // TODO: Validate assumption: Since we pull data from the network
+                    // we will never get a situation where control is never returned
+                    // to the task scheduler.
+                    datafusion::physical_plan::execution_plan::SchedulingType::Cooperative,
+                ),
             ),
         }
     }
@@ -509,7 +511,7 @@ impl ExecutionPlan for EthGetLogs {
         self
     }
 
-    fn properties(&self) -> &PlanProperties {
+    fn properties(&self) -> &Arc<PlanProperties> {
         &self.properties
     }
 
