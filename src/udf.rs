@@ -58,6 +58,8 @@ pub fn solidity_value_to_json(value: &DynSolValue) -> serde_json::Value {
         DynSolValue::Array(_) => todo!(),
         DynSolValue::FixedArray(_) => todo!(),
         DynSolValue::Tuple(_) => todo!(),
+        #[cfg(feature = "eip712")]
+        DynSolValue::CustomStruct { .. } => todo!(),
     }
 }
 
