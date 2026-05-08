@@ -1,12 +1,18 @@
 [package]
 name = "datafusion-ethers"
-version = "52.0.0"
+version = "52.1.0"
 edition = "2024"
 repository = "https://github.com/kamu-data/datafusion-ethers"
 description = "Ethereum RPC bridge for Apache Datafusion"
 keywords = ["datafusion", "sql", "ethereum", "blockchain"]
 authors = ["Kamu Data Inc. <info@kamu.dev>"]
 license = "Apache-2.0"
+
+
+[features]
+default = []
+
+eip712 = ["alloy/eip712"]
 
 
 [dependencies]
