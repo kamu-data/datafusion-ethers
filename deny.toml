@@ -8,10 +8,11 @@ workspace-default-features = "deny"
 # Avoid adding dependencies to this list as this slows down compilation.
 # Find other ways to avoid duplication.
 skip-tree = [
-    { name = "cpufeatures" },
-    { name = "digest" },
+    { name = "darling" },
     { name = "hashbrown" },
     { name = "rand" },
+    { name = "webpki-roots" }, # TODO: Waiting for v1 upgrade to propagate
+    { name = "windows-sys" },
 ]
 deny = [{ name = "openssl" }]
 
