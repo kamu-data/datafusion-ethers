@@ -7,7 +7,8 @@ use datafusion::prelude::*;
 async fn main() {
     init_tracing();
 
-    let url = "https://0xrpc.io/eth";
+    // let url = "https://0xrpc.io/eth";
+    let url = "https://eth-mainnet.public.blastapi.io";
 
     tracing::info!(url, "Fetching data from Ethereum Mainnet");
 
