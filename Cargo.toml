@@ -1,6 +1,6 @@
 [package]
 name = "datafusion-ethers"
-version = "53.0.0"
+version = "53.0.1"
 edition = "2024"
 repository = "https://github.com/kamu-data/datafusion-ethers"
 description = "Ethereum RPC bridge for Apache Datafusion"
@@ -9,14 +9,18 @@ authors = ["Kamu Data Inc. <info@kamu.dev>"]
 license = "Apache-2.0"
 
 
+[features]
+eip712 = ["alloy/eip712"]
+
+
 [dependencies]
 async-stream = { version = "0.3" }
 async-trait = { version = "0.1" }
 alloy = { version = "1", default-features = false, features = [
     "dyn-abi",
+    "json-abi",
     "network",
     "providers",
-    "json-abi",
     "rpc-types-eth",
     "std",
 ] }

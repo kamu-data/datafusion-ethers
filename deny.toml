@@ -6,12 +6,11 @@ wildcards = "deny"
 # We specify features explicitly to avoid bloat
 workspace-default-features = "deny"
 # Avoid adding dependencies to this list as this slows down compilation.
-# Find another ways to avoid duplication.
+# Find other ways to avoid duplication.
 skip-tree = [
     { name = "darling" },
     { name = "hashbrown" },
     { name = "rand" },
-    { name = "wasi" },
     { name = "webpki-roots" }, # TODO: Waiting for v1 upgrade to propagate
     { name = "windows-sys" },
 ]
@@ -43,6 +42,8 @@ allow-org = { github = [] }
 
 [advisories]
 yanked = "deny"
+unused-ignored-advisory = "deny"
+
 ignore = [
     # paste (via datafusion-common)
     # https://rustsec.org/advisories/RUSTSEC-2024-0436
