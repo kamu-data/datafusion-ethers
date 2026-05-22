@@ -10,16 +10,18 @@ license = "Apache-2.0"
 
 
 [features]
-eip712 = ["alloy-dyn-abi/eip712"]
+eip712 = ["alloy-core/eip712"]
 
 
 [dependencies]
 async-stream = { version = "0.3" }
 async-trait = { version = "0.1" }
-alloy-dyn-abi = { version = "1", default-features = false, features = ["std"] }
-alloy-json-abi = { version = "1", default-features = false, features = ["std"] }
+alloy-core = { version = "1.5.7", default-features = false, features = [
+    "std",
+    "dyn-abi",
+    "json-abi",
+] }
 alloy-network = { version = "1", default-features = false }
-alloy-primitives = { version = "1", default-features = false, features = ["std"] }
 alloy-provider = { version = "1", default-features = false }
 alloy-rpc-types-eth = { version = "1", default-features = false, features = [
     "std",
@@ -42,7 +44,7 @@ alloy-provider = { version = "1", default-features = false, features = [
     "reqwest",
     "reqwest-rustls-tls",
 ] }
-alloy-sol-types = { version = "1", default-features = false, features = ["std"] }
+alloy-core = { version = "1", default-features = false, features = ["sol-types"] }
 datafusion = { version = "53", default-features = false, features = [
     "parquet",
 ] }

@@ -1,5 +1,6 @@
-use alloy_dyn_abi::{DynSolEvent, Specifier};
-use alloy_json_abi::Event;
+use alloy_core::dyn_abi::Error as DynAbiError;
+use alloy_core::dyn_abi::{DynSolEvent, Specifier};
+use alloy_core::json_abi::Event;
 use alloy_rpc_types_eth::Log;
 use datafusion::arrow::array::RecordBatch;
 use datafusion::arrow::datatypes::{DataType, Field, SchemaBuilder, SchemaRef};
@@ -40,8 +41,8 @@ impl EthRawAndDecodedLogsToArrow {
     pub fn new_from_signature(
         options: &StreamOptions,
         signature: &str,
-    ) -> Result<Self, alloy_dyn_abi::Error> {
-        let event_type = alloy_json_abi::Event::parse(signature)?;
+    ) -> Result<Self, DynAbiError> {
+        let event_type = Event::parse(signature)?;
         let resolved_type = event_type.resolve()?;
         Ok(Self::new(options, event_type, resolved_type))
     }

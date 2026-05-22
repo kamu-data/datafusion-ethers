@@ -1,12 +1,13 @@
 use std::sync::Arc;
 
-use alloy_dyn_abi::Specifier;
+use alloy_core::dyn_abi::Specifier;
+use alloy_core::hex;
+use alloy_core::json_abi::Event;
+use alloy_core::primitives::{Address, B256, Log as PrimitiveLog};
+use alloy_core::sol;
 use alloy_network::AnyNetwork;
-use alloy_primitives::hex;
-use alloy_primitives::{Address, B256, Log as PrimitiveLog};
 use alloy_provider::{Provider, ProviderBuilder};
 use alloy_rpc_types_eth::{BlockNumberOrTag, FilterBlockOption, FilterSet, Log};
-use alloy_sol_types::sol;
 use datafusion::prelude::*;
 use datafusion_ethers::convert::Transcoder as _;
 use datafusion_ethers::stream::StreamOptions;
@@ -105,7 +106,7 @@ async fn test_raw_logs_to_record_batch() {
 
 #[test_log::test(tokio::test)]
 async fn test_decoded_logs_to_record_batch() {
-    let event = alloy_json_abi::Event::parse(
+    let event = Event::parse(
         "event SendRequest(uint64 indexed requestId, address indexed consumerAddr, bytes request)",
     )
     .unwrap();

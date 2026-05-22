@@ -1,5 +1,5 @@
 use alloy_network::AnyNetwork;
-use alloy_primitives::{Address, B256};
+use alloy_core::primitives::{Address, B256};
 use alloy_provider::DynProvider;
 use alloy_rpc_types_eth::{BlockNumberOrTag, Filter, FilterBlockOption};
 use datafusion::catalog::{CatalogProvider, SchemaProvider, Session};

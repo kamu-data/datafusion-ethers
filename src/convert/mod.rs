@@ -2,7 +2,7 @@ mod decoded;
 mod hybrid;
 mod raw;
 
-use alloy_dyn_abi::Error as DynAbiError;
+use alloy_core::dyn_abi::Error as DynAbiError;
 use alloy_rpc_types_eth::{Filter, Log};
 use datafusion::arrow::array::RecordBatch;
 use datafusion::arrow::datatypes::SchemaRef;
