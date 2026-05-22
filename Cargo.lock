@@ -2024,7 +2024,7 @@ checksum = "5c93ad9e37730d2c7196e68616f3f2dd3b04c892e03acd3a8eeca6e177f3c06a"
 
 [[package]]
 name = "datafusion-ethers"
-version = "53.0.1"
+version = "53.0.2"
 dependencies = [
  "alloy-contract",
  "alloy-dyn-abi",

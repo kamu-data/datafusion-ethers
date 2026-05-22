@@ -1,6 +1,6 @@
 [package]
 name = "datafusion-ethers"
-version = "53.0.1"
+version = "53.0.2"
 edition = "2024"
 repository = "https://github.com/kamu-data/datafusion-ethers"
 description = "Ethereum RPC bridge for Apache Datafusion"
