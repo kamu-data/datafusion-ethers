@@ -16,6 +16,9 @@ eip712 = ["alloy-core/eip712"]
 [dependencies]
 async-stream = { version = "0.3" }
 async-trait = { version = "0.1" }
+# NOTE: We use alloy sub-crates instead of the meta-crate to avoid pulling in optional dependencies
+#       that get included anyway due to an old known issue:
+#       Details: https://github.com/rust-lang/cargo/issues/10801
 alloy-core = { version = "1.5.7", default-features = false, features = [
     "dyn-abi",
     "json-abi",
