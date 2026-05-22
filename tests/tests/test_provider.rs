@@ -17,11 +17,11 @@ async fn test_pushdown_common_cfg(
 ) {
     let test_chain = super::chain::get_test_chain().await;
 
-    // Turn off extra optimizations that create noise in prhysical plans
+    // Turn off extra optimizations that create noise in physical plans
     let mut cfg = SessionConfig::new()
         .with_target_partitions(1)
         .with_coalesce_batches(false)
-        .with_option_extension(datafusion_ethers::config::EthProviderConfig::default());
+        .with_option_extension(EthProviderConfig::default());
 
     set_cfg(cfg.options_mut());
 

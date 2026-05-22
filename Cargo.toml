@@ -1,6 +1,6 @@
 [package]
 name = "datafusion-ethers"
-version = "53.0.1"
+version = "53.0.2"
 edition = "2024"
 repository = "https://github.com/kamu-data/datafusion-ethers"
 description = "Ethereum RPC bridge for Apache Datafusion"
@@ -10,20 +10,23 @@ license = "Apache-2.0"
 
 
 [features]
-eip712 = ["alloy/eip712"]
+eip712 = ["alloy-core/eip712"]
 
 
 [dependencies]
 async-stream = { version = "0.3" }
 async-trait = { version = "0.1" }
-alloy = { version = "1", default-features = false, features = [
+# NOTE: We use alloy sub-crates instead of the meta-crate to avoid pulling in optional dependencies
+#       that get included anyway due to an old known issue:
+#       Details: https://github.com/rust-lang/cargo/issues/10801
+alloy-core = { version = "1", default-features = false, features = [
     "dyn-abi",
     "json-abi",
-    "network",
-    "providers",
-    "rpc-types-eth",
-    "std",
 ] }
+alloy-network = { version = "1", default-features = false }
+alloy-provider = { version = "1", default-features = false }
+alloy-rpc-types-eth = { version = "1", default-features = false }
+alloy-transport = { version = "1", default-features = false }
 datafusion = { version = "53", default-features = false, features = ["sql"] }
 futures = { version = "0.3" }
 serde_json = { version = "1" }
@@ -33,13 +36,12 @@ tracing = { version = "0.1", default-features = false }
 
 
 [dev-dependencies]
-alloy = { version = "1", default-features = false, features = [
-    "contract",
-    "node-bindings",
-    "provider-http",
-    "provider-ws",
+alloy-contract = { version = "1", default-features = false }
+alloy-node-bindings = { version = "1", default-features = false }
+alloy-provider = { version = "1", default-features = false, features = [
+    "reqwest",
     "reqwest-rustls-tls",
-    "sol-types",
+    "ws",
 ] }
 datafusion = { version = "53", default-features = false, features = [
     "parquet",
@@ -49,6 +51,7 @@ indoc = { version = "2" }
 pretty_assertions = { version = "1" }
 test-log = { version = "0.2", features = ["trace"] }
 tokio = { version = "1", default-features = false, features = [
+    "macros",
     "rt-multi-thread",
 ] }
 tracing-subscriber = { version = "0.3" }

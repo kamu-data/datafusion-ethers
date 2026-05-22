@@ -1,8 +1,7 @@
-use alloy::{
-    providers::{DynProvider, Provider},
-    rpc::types::eth::{BlockNumberOrTag, Filter, FilterBlockOption, Log},
-    transports::{RpcError, TransportErrorKind},
-};
+use alloy_network::AnyNetwork;
+use alloy_provider::{DynProvider, Provider};
+use alloy_rpc_types_eth::{BlockNumberOrTag, Filter, FilterBlockOption, Log};
+use alloy_transport::{RpcError, TransportErrorKind};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -54,7 +53,7 @@ impl RawLogsStream {
     // TODO: Re-org detection and handling
     /// Streams batches of raw logs efficient and resumable pagination over `eth_getLogs` RPC endpoint,
     pub fn paginate(
-        rpc_client: DynProvider<alloy::network::AnyNetwork>,
+        rpc_client: DynProvider<AnyNetwork>,
         mut filter: Filter,
         options: StreamOptions,
         resume_from_state: Option<StreamState>,
@@ -127,7 +126,7 @@ impl RawLogsStream {
     /// and approximates the timestamps for blocks in between by interpolating.
     /// NOTE: This might not be reproducible if stride changes between runs
     async fn populate_block_timestamps_fallback(
-        rpc_client: &DynProvider<alloy::network::AnyNetwork>,
+        rpc_client: &DynProvider<AnyNetwork>,
         logs: &mut [Log],
     ) -> Result<(), RpcError<TransportErrorKind>> {
         let first_log = logs.first().unwrap();
@@ -167,7 +166,7 @@ impl RawLogsStream {
     }
 
     pub async fn filter_to_block_range(
-        rpc_client: &DynProvider<alloy::network::AnyNetwork>,
+        rpc_client: &DynProvider<AnyNetwork>,
         block_option: &FilterBlockOption,
     ) -> Result<(u64, u64), RpcError<TransportErrorKind>> {
         match block_option {

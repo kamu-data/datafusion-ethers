@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [53.0.2] - 2026-05-22
+### Changed
+- Use `alloy` sub-crates directly instead of the meta-crate to reduce bloat
+
 ## [53.0.1] - 2026-05-19
 ### Added
 - Added `eip712` feature

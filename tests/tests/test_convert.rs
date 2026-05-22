@@ -1,13 +1,13 @@
 use std::sync::Arc;
 
-use alloy::dyn_abi::Specifier;
-use alloy::hex;
-use alloy::providers::Provider;
-use alloy::{
-    primitives::{Address, B256},
-    providers::ProviderBuilder,
-    rpc::types::eth::{BlockNumberOrTag, FilterBlockOption, FilterSet, Log},
-};
+use alloy_core::dyn_abi::Specifier;
+use alloy_core::hex;
+use alloy_core::json_abi::Event;
+use alloy_core::primitives::{Address, B256, Log as PrimitiveLog};
+use alloy_core::sol;
+use alloy_network::AnyNetwork;
+use alloy_provider::{Provider, ProviderBuilder};
+use alloy_rpc_types_eth::{BlockNumberOrTag, FilterBlockOption, FilterSet, Log};
 use datafusion::prelude::*;
 use datafusion_ethers::convert::Transcoder as _;
 use datafusion_ethers::stream::StreamOptions;
@@ -15,7 +15,7 @@ use indoc::indoc;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-alloy::sol! {
+sol! {
     event SendRequest(uint64 indexed requestId, address indexed consumerAddr, bytes request);
 }
 
@@ -28,7 +28,7 @@ fn get_sample_log() -> Log {
         request: hex!("ff00bbaa").into(),
     };
 
-    let inner = alloy::primitives::Log::<SendRequest>::new_from_event_unchecked(
+    let inner = PrimitiveLog::<SendRequest>::new_from_event_unchecked(
         "bbccddaabbccddaabbccddaabbccddaabbccddaa".parse().unwrap(),
         event,
     )
@@ -106,7 +106,7 @@ async fn test_raw_logs_to_record_batch() {
 
 #[test_log::test(tokio::test)]
 async fn test_decoded_logs_to_record_batch() {
-    let event = alloy::json_abi::Event::parse(
+    let event = Event::parse(
         "event SendRequest(uint64 indexed requestId, address indexed consumerAddr, bytes request)",
     )
     .unwrap();
@@ -357,7 +357,7 @@ async fn test_udf_eth_event_selector() {
 
 #[test_log::test(tokio::test)]
 async fn test_sql_to_pushdown_filter() {
-    let rpc_client = ProviderBuilder::new_with_network::<alloy::network::AnyNetwork>()
+    let rpc_client = ProviderBuilder::new_with_network::<AnyNetwork>()
         .connect("http://localhost:12345")
         .await
         .unwrap()

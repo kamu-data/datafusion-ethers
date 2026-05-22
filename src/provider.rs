@@ -1,6 +1,7 @@
-use alloy::primitives::{Address, B256};
-use alloy::providers::DynProvider;
-use alloy::rpc::types::eth::{BlockNumberOrTag, Filter, FilterBlockOption};
+use alloy_core::primitives::{Address, B256};
+use alloy_network::AnyNetwork;
+use alloy_provider::DynProvider;
+use alloy_rpc_types_eth::{BlockNumberOrTag, Filter, FilterBlockOption};
 use datafusion::catalog::{CatalogProvider, SchemaProvider, Session};
 use datafusion::error::{DataFusionError, Result as DfResult};
 use datafusion::execution::TaskContext;
@@ -31,14 +32,11 @@ use crate::utils::*;
 #[derive(Debug)]
 pub struct EthCatalog {
     config: EthProviderConfig,
-    rpc_client: DynProvider<alloy::network::AnyNetwork>,
+    rpc_client: DynProvider<AnyNetwork>,
 }
 
 impl EthCatalog {
-    pub fn new(
-        config: EthProviderConfig,
-        rpc_client: DynProvider<alloy::network::AnyNetwork>,
-    ) -> Self {
+    pub fn new(config: EthProviderConfig, rpc_client: DynProvider<AnyNetwork>) -> Self {
         Self { config, rpc_client }
     }
 }
@@ -71,14 +69,11 @@ impl CatalogProvider for EthCatalog {
 #[derive(Debug)]
 pub struct EthSchema {
     config: EthProviderConfig,
-    rpc_client: DynProvider<alloy::network::AnyNetwork>,
+    rpc_client: DynProvider<AnyNetwork>,
 }
 
 impl EthSchema {
-    pub fn new(
-        config: EthProviderConfig,
-        rpc_client: DynProvider<alloy::network::AnyNetwork>,
-    ) -> Self {
+    pub fn new(config: EthProviderConfig, rpc_client: DynProvider<AnyNetwork>) -> Self {
         Self { config, rpc_client }
     }
 }
@@ -115,14 +110,11 @@ impl SchemaProvider for EthSchema {
 #[derive(Debug)]
 pub struct EthLogsTable {
     schema: SchemaRef,
-    rpc_client: DynProvider<alloy::network::AnyNetwork>,
+    rpc_client: DynProvider<AnyNetwork>,
 }
 
 impl EthLogsTable {
-    pub fn new(
-        config: &EthProviderConfig,
-        rpc_client: DynProvider<alloy::network::AnyNetwork>,
-    ) -> Self {
+    pub fn new(config: &EthProviderConfig, rpc_client: DynProvider<AnyNetwork>) -> Self {
         let encoder = crate::convert::EthRawLogsToArrow::new(&config.stream_options());
         let schema = encoder.schema();
 
@@ -403,7 +395,7 @@ impl TableProvider for EthLogsTable {
 pub struct EthGetLogs {
     projected_schema: SchemaRef,
     projection: Option<Vec<usize>>,
-    rpc_client: DynProvider<alloy::network::AnyNetwork>,
+    rpc_client: DynProvider<AnyNetwork>,
     filter: Filter,
     stream_options: StreamOptions,
     limit: Option<usize>,
@@ -412,7 +404,7 @@ pub struct EthGetLogs {
 
 impl EthGetLogs {
     pub fn new(
-        rpc_client: DynProvider<alloy::network::AnyNetwork>,
+        rpc_client: DynProvider<AnyNetwork>,
         projected_schema: SchemaRef,
         projection: Option<Vec<usize>>,
         filter: Filter,
@@ -454,7 +446,7 @@ impl EthGetLogs {
     }
 
     fn execute_impl(
-        rpc_client: DynProvider<alloy::network::AnyNetwork>,
+        rpc_client: DynProvider<AnyNetwork>,
         filter: Filter,
         options: StreamOptions,
         projection: Option<Vec<usize>>,
