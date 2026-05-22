@@ -17,16 +17,12 @@ eip712 = ["alloy-core/eip712"]
 async-stream = { version = "0.3" }
 async-trait = { version = "0.1" }
 alloy-core = { version = "1.5.7", default-features = false, features = [
-    "std",
     "dyn-abi",
     "json-abi",
 ] }
 alloy-network = { version = "1", default-features = false }
 alloy-provider = { version = "1", default-features = false }
-alloy-rpc-types-eth = { version = "1", default-features = false, features = [
-    "std",
-    "serde",
-] }
+alloy-rpc-types-eth = { version = "1", default-features = false }
 alloy-transport = { version = "1", default-features = false }
 datafusion = { version = "53", default-features = false, features = ["sql"] }
 futures = { version = "0.3" }
@@ -40,11 +36,10 @@ tracing = { version = "0.1", default-features = false }
 alloy-contract = { version = "1", default-features = false }
 alloy-node-bindings = { version = "1", default-features = false }
 alloy-provider = { version = "1", default-features = false, features = [
-    "ws",
     "reqwest",
     "reqwest-rustls-tls",
+    "ws",
 ] }
-alloy-core = { version = "1", default-features = false, features = ["sol-types"] }
 datafusion = { version = "53", default-features = false, features = [
     "parquet",
 ] }
