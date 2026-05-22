@@ -2,7 +2,8 @@ mod decoded;
 mod hybrid;
 mod raw;
 
-use alloy::rpc::types::eth::{Filter, Log};
+use alloy_dyn_abi::Error as DynAbiError;
+use alloy_rpc_types_eth::{Filter, Log};
 use datafusion::arrow::array::RecordBatch;
 use datafusion::arrow::datatypes::SchemaRef;
 pub use decoded::*;
@@ -28,7 +29,7 @@ pub trait Transcoder {
 #[derive(Debug, thiserror::Error)]
 pub enum AppendError {
     #[error(transparent)]
-    EventDecodingError(#[from] alloy::dyn_abi::Error),
+    EventDecodingError(#[from] DynAbiError),
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

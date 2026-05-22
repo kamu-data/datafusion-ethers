@@ -1,8 +1,6 @@
-use alloy::{
-    network::AnyNetwork,
-    providers::DynProvider,
-    rpc::types::eth::{BlockNumberOrTag, Filter},
-};
+use alloy_network::AnyNetwork;
+use alloy_provider::DynProvider;
+use alloy_rpc_types_eth::{BlockNumberOrTag, Filter};
 use datafusion_ethers::stream::{StreamOptions, StreamState};
 use futures::TryStreamExt as _;
 

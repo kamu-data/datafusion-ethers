@@ -1,4 +1,4 @@
-use alloy::rpc::types::eth::{BlockNumberOrTag, Filter};
+use alloy_rpc_types_eth::{BlockNumberOrTag, Filter};
 use datafusion::{
     config::{ConfigEntry, ConfigExtension, ExtensionOptions},
     error::DataFusionError,

@@ -1,4 +1,4 @@
-use alloy::rpc::types::eth::{BlockNumberOrTag, Filter, FilterBlockOption};
+use alloy_rpc_types_eth::{BlockNumberOrTag, Filter, FilterBlockOption};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 

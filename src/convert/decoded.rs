@@ -1,7 +1,7 @@
-use alloy::dyn_abi::{DecodedEvent, DynSolEvent, DynSolType, DynSolValue, Specifier};
-use alloy::json_abi::{Event, EventParam};
-use alloy::primitives::Sign;
-use alloy::rpc::types::eth::Log;
+use alloy_dyn_abi::{DecodedEvent, DynSolEvent, DynSolType, DynSolValue, Specifier};
+use alloy_json_abi::{Event, EventParam};
+use alloy_primitives::Sign;
+use alloy_rpc_types_eth::Log;
 use datafusion::arrow::array::{self, Array, ArrayBuilder, RecordBatch};
 use datafusion::arrow::datatypes::{DataType, Field, Schema, SchemaRef};
 use std::sync::Arc;
@@ -47,8 +47,8 @@ impl EthDecodedLogsToArrow {
         }
     }
 
-    pub fn new_from_signature(signature: &str) -> Result<Self, alloy::dyn_abi::Error> {
-        let event_type = alloy::json_abi::Event::parse(signature)?;
+    pub fn new_from_signature(signature: &str) -> Result<Self, alloy_dyn_abi::Error> {
+        let event_type = alloy_json_abi::Event::parse(signature)?;
         let resolved_type = event_type.resolve()?;
         Ok(Self::new(event_type, resolved_type))
     }

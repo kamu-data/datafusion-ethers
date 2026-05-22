@@ -10,20 +10,22 @@ license = "Apache-2.0"
 
 
 [features]
-eip712 = ["alloy/eip712"]
+eip712 = ["alloy-dyn-abi/eip712"]
 
 
 [dependencies]
 async-stream = { version = "0.3" }
 async-trait = { version = "0.1" }
-alloy = { version = "1", default-features = false, features = [
-    "dyn-abi",
-    "json-abi",
-    "network",
-    "providers",
-    "rpc-types-eth",
+alloy-dyn-abi = { version = "1", default-features = false, features = ["std"] }
+alloy-json-abi = { version = "1", default-features = false, features = ["std"] }
+alloy-network = { version = "1", default-features = false }
+alloy-primitives = { version = "1", default-features = false, features = ["std"] }
+alloy-provider = { version = "1", default-features = false }
+alloy-rpc-types-eth = { version = "1", default-features = false, features = [
     "std",
+    "serde",
 ] }
+alloy-transport = { version = "1", default-features = false }
 datafusion = { version = "53", default-features = false, features = ["sql"] }
 futures = { version = "0.3" }
 serde_json = { version = "1" }
@@ -33,14 +35,14 @@ tracing = { version = "0.1", default-features = false }
 
 
 [dev-dependencies]
-alloy = { version = "1", default-features = false, features = [
-    "contract",
-    "node-bindings",
-    "provider-http",
-    "provider-ws",
+alloy-contract = { version = "1", default-features = false }
+alloy-node-bindings = { version = "1", default-features = false }
+alloy-provider = { version = "1", default-features = false, features = [
+    "ws",
+    "reqwest",
     "reqwest-rustls-tls",
-    "sol-types",
 ] }
+alloy-sol-types = { version = "1", default-features = false, features = ["std"] }
 datafusion = { version = "53", default-features = false, features = [
     "parquet",
 ] }
@@ -49,6 +51,7 @@ indoc = { version = "2" }
 pretty_assertions = { version = "1" }
 test-log = { version = "0.2", features = ["trace"] }
 tokio = { version = "1", default-features = false, features = [
+    "macros",
     "rt-multi-thread",
 ] }
 tracing-subscriber = { version = "0.3" }

@@ -1,14 +1,11 @@
 use std::{path::PathBuf, sync::Arc};
 
-use alloy::hex::ToHexExt;
-use alloy::network::AnyNetwork;
-use alloy::providers::{DynProvider, Provider};
-use alloy::sol;
-use alloy::{
-    node_bindings::{Anvil, AnvilInstance},
-    primitives::Address,
-    providers::ProviderBuilder,
-};
+use alloy_network::AnyNetwork;
+use alloy_node_bindings::{Anvil, AnvilInstance};
+use alloy_primitives::Address;
+use alloy_primitives::hex::ToHexExt;
+use alloy_provider::{DynProvider, Provider, ProviderBuilder};
+use alloy_sol_types::sol;
 use tokio::sync::{Mutex, MutexGuard};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

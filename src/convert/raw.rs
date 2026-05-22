@@ -1,4 +1,4 @@
-use alloy::rpc::types::eth::Log;
+use alloy_rpc_types_eth::Log;
 use datafusion::arrow::array::{self, ArrayBuilder};
 use datafusion::arrow::datatypes::{DataType, Field, Schema, SchemaRef, TimeUnit};
 use std::sync::Arc;

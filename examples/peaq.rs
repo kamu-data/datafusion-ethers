@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
-use alloy::providers::{Provider, ProviderBuilder};
+use alloy_network::AnyNetwork;
+use alloy_provider::{Provider, ProviderBuilder};
 use datafusion::prelude::*;
 
 #[tokio::main]
@@ -11,7 +12,7 @@ async fn main() {
 
     tracing::info!(url, "Fetching data from PEAQ network");
 
-    let rpc_client = ProviderBuilder::new_with_network::<alloy::network::any::AnyNetwork>()
+    let rpc_client = ProviderBuilder::new_with_network::<AnyNetwork>()
         .connect(url)
         .await
         .unwrap()
