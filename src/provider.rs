@@ -18,7 +18,7 @@ use datafusion::{
     scalar::ScalarValue,
 };
 use futures::{Stream, TryStreamExt};
-use std::{any::Any, sync::Arc};
+use std::sync::Arc;
 
 use crate::config::EthProviderConfig;
 use crate::convert::Transcoder as _;
@@ -42,10 +42,6 @@ impl EthCatalog {
 }
 
 impl CatalogProvider for EthCatalog {
-    fn as_any(&self) -> &dyn Any {
-        self
-    }
-
     fn schema_names(&self) -> Vec<String> {
         vec![self.config.schema_name.clone()]
     }
@@ -80,10 +76,6 @@ impl EthSchema {
 
 #[async_trait::async_trait]
 impl SchemaProvider for EthSchema {
-    fn as_any(&self) -> &dyn Any {
-        self
-    }
-
     fn table_names(&self) -> Vec<String> {
         vec!["logs".to_string()]
     }
@@ -295,10 +287,6 @@ impl EthLogsTable {
 
 #[async_trait::async_trait]
 impl TableProvider for EthLogsTable {
-    fn as_any(&self) -> &dyn Any {
-        self
-    }
-
     fn table_type(&self) -> TableType {
         TableType::Base
     }
@@ -497,10 +485,6 @@ impl EthGetLogs {
 impl ExecutionPlan for EthGetLogs {
     fn name(&self) -> &str {
         Self::static_name()
-    }
-
-    fn as_any(&self) -> &dyn Any {
-        self
     }
 
     fn properties(&self) -> &Arc<PlanProperties> {

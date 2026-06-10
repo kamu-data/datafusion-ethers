@@ -1,6 +1,6 @@
 [package]
 name = "datafusion-ethers"
-version = "53.0.2"
+version = "54.0.0"
 edition = "2024"
 repository = "https://github.com/kamu-data/datafusion-ethers"
 description = "Ethereum RPC bridge for Apache Datafusion"
@@ -27,7 +27,7 @@ alloy-network = { version = "1", default-features = false }
 alloy-provider = { version = "1", default-features = false }
 alloy-rpc-types-eth = { version = "1", default-features = false }
 alloy-transport = { version = "1", default-features = false }
-datafusion = { version = "53", default-features = false, features = ["sql"] }
+datafusion = { version = "54", default-features = false, features = ["sql"] }
 futures = { version = "0.3" }
 serde_json = { version = "1" }
 tokio = { version = "1", default-features = false }
@@ -43,10 +43,10 @@ alloy-provider = { version = "1", default-features = false, features = [
     "reqwest-rustls-tls",
     "ws",
 ] }
-datafusion = { version = "53", default-features = false, features = [
+datafusion = { version = "54", default-features = false, features = [
     "parquet",
 ] }
-datafusion-functions-json = { version = "0.53", default-features = false }
+datafusion-functions-json = { version = "0.54", default-features = false }
 indoc = { version = "2" }
 pretty_assertions = { version = "1" }
 test-log = { version = "0.2", features = ["trace"] }

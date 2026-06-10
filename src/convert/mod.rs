@@ -43,7 +43,6 @@ pub async fn sql_to_pushdown_filter(ctx: &SessionContext, sql: &str) -> DfResult
 
 fn sql_to_pushdown_filter_rec(plan: &dyn ExecutionPlan) -> Option<Filter> {
     let mut found = plan
-        .as_any()
         .downcast_ref::<super::provider::EthGetLogs>()
         .map(|scan| scan.filter().clone());
 

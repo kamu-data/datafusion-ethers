@@ -1,4 +1,3 @@
-use std::any::Any;
 use std::sync::Arc;
 
 use alloy_core::dyn_abi::{DecodedEvent, DynSolValue, EventExt as _};
@@ -79,10 +78,6 @@ impl UdfEthDecodeEvent {
 }
 
 impl ScalarUDFImpl for UdfEthDecodeEvent {
-    fn as_any(&self) -> &dyn Any {
-        self
-    }
-
     fn name(&self) -> &str {
         "eth_decode_event"
     }
@@ -178,10 +173,6 @@ impl UdfEthTryDecodeEvent {
 }
 
 impl ScalarUDFImpl for UdfEthTryDecodeEvent {
-    fn as_any(&self) -> &dyn Any {
-        self
-    }
-
     fn name(&self) -> &str {
         "eth_try_decode_event"
     }
@@ -276,10 +267,6 @@ impl UdfEthEventSelector {
 }
 
 impl ScalarUDFImpl for UdfEthEventSelector {
-    fn as_any(&self) -> &dyn Any {
-        self
-    }
-
     fn name(&self) -> &str {
         "eth_event_selector"
     }
