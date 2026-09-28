@@ -3,6 +3,7 @@ use alloy_network::AnyNetwork;
 use alloy_provider::DynProvider;
 use alloy_rpc_types_eth::{BlockNumberOrTag, Filter, FilterBlockOption};
 use datafusion::catalog::{CatalogProvider, SchemaProvider, Session};
+use datafusion::common::tree_node::TreeNodeRecursion;
 use datafusion::error::{DataFusionError, Result as DfResult};
 use datafusion::execution::TaskContext;
 use datafusion::logical_expr::BinaryExpr;
@@ -494,6 +495,15 @@ impl ExecutionPlan for EthGetLogs {
     fn children(&self) -> Vec<&Arc<dyn ExecutionPlan>> {
         // this is a leaf node and has no children
         vec![]
+    }
+
+    fn apply_expressions(
+        &self,
+        _f: &mut dyn FnMut(
+            &Arc<dyn datafusion::physical_plan::PhysicalExpr>,
+        ) -> DfResult<TreeNodeRecursion>,
+    ) -> DfResult<TreeNodeRecursion> {
+        Ok(TreeNodeRecursion::Continue)
     }
 
     fn with_new_children(

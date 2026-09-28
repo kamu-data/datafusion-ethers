@@ -253,7 +253,7 @@ async fn test_udf_eth_decode_event() {
             +-----------------------------------------------------------------------------------------------------------------------+
             | event                                                                                                                 |
             +-----------------------------------------------------------------------------------------------------------------------+
-            | {"consumerAddr":"aabbccddaabbccddaabbccddaabbccddaabbccdd","name":"SendRequest","request":"ff00bbaa","requestId":123} |
+            | {"name":"SendRequest","requestId":123,"consumerAddr":"aabbccddaabbccddaabbccddaabbccddaabbccdd","request":"ff00bbaa"} |
             +-----------------------------------------------------------------------------------------------------------------------+
             "#
         ),

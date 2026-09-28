@@ -8,10 +8,18 @@ workspace-default-features = "deny"
 # Avoid adding dependencies to this list as this slows down compilation.
 # Find other ways to avoid duplication.
 skip-tree = [
+    { name = "base64" },
+    { name = "block-buffer" },
+    { name = "cpufeatures" },
+    { name = "crypto-common" },
     { name = "darling" },
+    { name = "digest" },
     { name = "hashbrown" },
+    { name = "itertools" },
+    { name = "num-bigint" },
+    { name = "phf" },
     { name = "rand" },
-    { name = "webpki-roots" }, # TODO: Waiting for v1 upgrade to propagate
+    { name = "webpki-roots" },  # TODO: Waiting for v1 upgrade to propagate
     { name = "windows-sys" },
 ]
 deny = [{ name = "openssl" }]
@@ -26,7 +34,6 @@ allow = [
     "CDLA-Permissive-2.0",
     "ISC",
     "MIT",
-    "0BSD",
     "Unicode-3.0",
     "Unlicense",
     "Zlib",
@@ -48,7 +55,4 @@ ignore = [
     # paste (via datafusion-common)
     # https://rustsec.org/advisories/RUSTSEC-2024-0436
     "RUSTSEC-2024-0436",
-    # proc-macro-error2 (via alloy, awaiting upgrade)
-    # https://rustsec.org/advisories/RUSTSEC-2026-0173
-    "RUSTSEC-2026-0173",
 ]

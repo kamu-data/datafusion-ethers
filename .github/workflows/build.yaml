@@ -54,6 +54,8 @@ jobs:
           cache-on-failure: true
       - name: Install foundry
         uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: v1.7.1
       - name: Build contracts
         working-directory: tests/contracts
         run: |
