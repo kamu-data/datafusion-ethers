@@ -1,6 +1,6 @@
 [package]
 name = "datafusion-ethers"
-version = "55.0.0"
+version = "55.1.0"
 edition = "2024"
 repository = "https://github.com/kamu-data/datafusion-ethers"
 description = "Ethereum RPC bridge for Apache Datafusion"
@@ -23,10 +23,10 @@ alloy-core = { version = "1", default-features = false, features = [
     "dyn-abi",
     "json-abi",
 ] }
-alloy-network = { version = "1", default-features = false }
-alloy-provider = { version = "1", default-features = false }
-alloy-rpc-types-eth = { version = "1", default-features = false }
-alloy-transport = { version = "1", default-features = false }
+alloy-network = { version = "2", default-features = false }
+alloy-provider = { version = "2", default-features = false }
+alloy-rpc-types-eth = { version = "2", default-features = false }
+alloy-transport = { version = "2", default-features = false }
 datafusion = { version = "55", default-features = false, features = ["sql"] }
 futures = { version = "0.3" }
 serde_json = { version = "1" }
@@ -36,9 +36,9 @@ tracing = { version = "0.1", default-features = false }
 
 
 [dev-dependencies]
-alloy-contract = { version = "1", default-features = false }
-alloy-node-bindings = { version = "1", default-features = false }
-alloy-provider = { version = "1", default-features = false, features = [
+alloy-contract = { version = "2", default-features = false }
+alloy-node-bindings = { version = "2", default-features = false }
+alloy-provider = { version = "2", default-features = false, features = [
     "reqwest",
     "reqwest-rustls-tls",
     "ws",

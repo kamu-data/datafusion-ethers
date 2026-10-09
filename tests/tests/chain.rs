@@ -37,8 +37,7 @@ static TEST_CHAIN_STATE: Mutex<StateT> = Mutex::const_new(None);
 pub struct TestChain<'a> {
     pub anvil: Arc<AnvilInstance>,
     pub rpc_client: DynProvider<AnyNetwork>,
-    // Anvil does not like concurrent access so we serialize
-    // all tests that are accessing it
+    // Held to keep anvil alive and to serialize test access
     guard: MutexGuard<'a, StateT>,
 }
 
@@ -76,6 +75,8 @@ pub async fn get_test_chain() -> TestChain<'static> {
                 "--private-key",
                 admin_key.as_str(),
                 "--broadcast",
+                "--non-interactive",
+                "--quiet",
             ])
             .status()
             .expect("Failed to deploy contracts. Is foundry installed?");

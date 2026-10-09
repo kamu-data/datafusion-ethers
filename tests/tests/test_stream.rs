@@ -38,7 +38,7 @@ async fn test_stream_raw_logs() {
             .to_block(BlockNumberOrTag::Latest),
         StreamOptions::default(),
         None,
-        vec![(4, StreamState { last_seen_block: 4 })],
+        vec![(4, StreamState { last_seen_block: 3 })],
     )
     .await;
 
@@ -47,20 +47,20 @@ async fn test_stream_raw_logs() {
         test_chain.rpc_client.clone(),
         Filter::default()
             .from_block(BlockNumberOrTag::Earliest)
-            .to_block(3),
+            .to_block(2),
         StreamOptions::default(),
         None,
-        vec![(2, StreamState { last_seen_block: 3 })],
+        vec![(2, StreamState { last_seen_block: 2 })],
     )
     .await;
 
     // Limited block range to one block
     assert_stream(
         test_chain.rpc_client.clone(),
-        Filter::default().from_block(4).to_block(4),
+        Filter::default().from_block(3).to_block(3),
         StreamOptions::default(),
         None,
-        vec![(2, StreamState { last_seen_block: 4 })],
+        vec![(2, StreamState { last_seen_block: 3 })],
     )
     .await;
 
@@ -78,9 +78,8 @@ async fn test_stream_raw_logs() {
         vec![
             (0, StreamState { last_seen_block: 0 }),
             (0, StreamState { last_seen_block: 1 }),
-            (0, StreamState { last_seen_block: 2 }),
+            (2, StreamState { last_seen_block: 2 }),
             (2, StreamState { last_seen_block: 3 }),
-            (2, StreamState { last_seen_block: 4 }),
         ],
     )
     .await;
@@ -95,8 +94,8 @@ async fn test_stream_raw_logs() {
             block_stride: 1,
             use_block_timestamp_fallback: false,
         },
-        Some(StreamState { last_seen_block: 3 }),
-        vec![(2, StreamState { last_seen_block: 4 })],
+        Some(StreamState { last_seen_block: 2 }),
+        vec![(2, StreamState { last_seen_block: 3 })],
     )
     .await;
 }
